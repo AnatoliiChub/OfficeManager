@@ -26,7 +26,12 @@ import androidx.compose.ui.unit.dp
 import com.chub.officemanager.domain.OfficeItem
 
 @Composable
-fun OfficeItemLayout(item: OfficeItem, onClick: (OfficeItem) -> Unit, onActionClick: (ItemOperation) -> Unit) {
+fun OfficeItemLayout(
+    item: OfficeItem,
+    operations: List<ItemOperation>,
+    onClick: (OfficeItem) -> Unit,
+    onActionClick: (ItemOperation) -> Unit
+) {
     val isMenuVisible = rememberSaveable { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     var pressOffset by remember { mutableStateOf(DpOffset.Zero) }
@@ -46,9 +51,11 @@ fun OfficeItemLayout(item: OfficeItem, onClick: (OfficeItem) -> Unit, onActionCl
                     onPress = {
                         val press = PressInteraction.Press(it)
                         interactionSource.emit(press)
-                        onClick(item)
                         tryAwaitRelease()
                         interactionSource.emit(PressInteraction.Release(press))
+                    },
+                    onTap = {
+                        onClick(item)
                     }
                 )
             }
@@ -69,7 +76,7 @@ fun OfficeItemLayout(item: OfficeItem, onClick: (OfficeItem) -> Unit, onActionCl
             isMenuVisible,
             pressOffset,
             itemHeight,
-            listOf(ItemOperation.Edit, ItemOperation.Delete),
+            operations,
             onActionClick
         )
     }

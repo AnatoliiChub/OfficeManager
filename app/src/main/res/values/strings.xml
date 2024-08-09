@@ -3,9 +3,15 @@
     <string name="menu">Menu</string>
     <string name="search">Search</string>
     <string name="add_action">Add</string>
+    <string name="done_action">Add</string>
     <string name="edit_action">Edit</string>
     <string name="delete_action">Delete</string>
-    <string name="title_objects">Objects</string>
-    <string name="title_add_object">Add object</string>
-    <string name="title_edit_object">Edit object</string>
+    <string name="title_search_items_to_add">Select Relation to Add</string>
+    <string name="title_search_items">Items</string>
+    <string name="title_add_items">Add object</string>
+    <string name="title_edit_items">Edit object</string>
+    <string name="relations">Relations: </string>
+    <string name="name">Name:</string>
+    <string name="description">Descriptioin:</string>
+    <string name="type">"Type: "</string>
 </resources>

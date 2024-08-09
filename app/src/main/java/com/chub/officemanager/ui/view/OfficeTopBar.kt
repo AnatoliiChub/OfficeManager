@@ -9,25 +9,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import com.chub.officemanager.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OfficeTopBar(scrollBehavior: TopAppBarScrollBehavior) {
+fun OfficeTopBar(
+    title: String,
+) {
     CenterAlignedTopAppBar(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             titleContentColor = MaterialTheme.colorScheme.primary,
         ),
-        title = {
-            Text(stringResource(id = R.string.title_objects))
-        },
+        title = { Text(title) },
         actions = {
             IconButton(onClick = { /* do something */ }) {
                 Icon(
@@ -35,7 +31,6 @@ fun OfficeTopBar(scrollBehavior: TopAppBarScrollBehavior) {
                     contentDescription = stringResource(id = R.string.menu)
                 )
             }
-        },
-        scrollBehavior = scrollBehavior
+        }
     )
 }
