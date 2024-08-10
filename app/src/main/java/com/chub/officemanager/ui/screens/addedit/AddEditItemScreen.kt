@@ -17,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -27,20 +26,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chub.officemanager.R
-import com.chub.officemanager.util.OfficeItem
-import com.chub.officemanager.util.OfficeItem.Companion.NONE
-import com.chub.officemanager.util.Result
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
 import com.chub.officemanager.ui.view.ErrorLayout
+import com.chub.officemanager.ui.view.InputText
 import com.chub.officemanager.ui.view.ItemOperation
 import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemLayout
 import com.chub.officemanager.ui.view.OfficeTopBar
+import com.chub.officemanager.util.OfficeItem
+import com.chub.officemanager.util.OfficeItem.Companion.NONE
+import com.chub.officemanager.util.Result
 
-const val NAME_MAX_LINES = 1
 const val DESCRIPTION_MAX_LINES = 3
-const val TYPE_MAX_LINES = 1
-const val RELATIONS_INIT_KEY = "Relations"
 
 @Composable
 fun AddEditScreen(
@@ -52,7 +49,7 @@ fun AddEditScreen(
     viewModel: AddEditViewModel = hiltViewModel()
 ) {
     //Default savedStateHandle from viewmodel can't handle result back case
-    LaunchedEffect(RELATIONS_INIT_KEY) {
+    LaunchedEffect(selectedRelation) {
         selectedRelation?.let {
             viewModel.onRelationSelected(selectedRelation)
         }
@@ -125,11 +122,19 @@ private fun BoxScope.Content(
         items(fields.size) { index ->
             when (val listItem = fields[index]) {
                 is InputField -> {
-                    InputFieldLayout(
-                        listItem, state.name, state.description, state.type,
-                        onNameChanged = onNameChanged,
-                        onDescriptionChanged = onDescriptionChanged, onTypeChanged = onTypeChanged
-                    )
+                    when (listItem.type) {
+                        FieldType.NAME -> InputText(state.name, onNameChanged, R.string.name)
+                        FieldType.DESCRIPTION -> {
+                            InputText(
+                                state.description,
+                                onDescriptionChanged,
+                                R.string.description,
+                                DESCRIPTION_MAX_LINES
+                            )
+                        }
+
+                        FieldType.TYPE -> InputText(state.type, onTypeChanged, R.string.type)
+                    }
                 }
 
                 is Label -> RelationsLabel(listItem)
@@ -177,50 +182,6 @@ private fun BoxScope.AddNewRelationButton(onAddButtonClick: () -> Unit) {
             imageVector = Icons.Filled.Add,
             contentDescription = stringResource(id = R.string.done_action)
         )
-    }
-}
-
-@Composable
-private fun InputFieldLayout(
-    listItem: InputField,
-    name: String,
-    description: String,
-    type: String,
-    onNameChanged: (String) -> Unit,
-    onDescriptionChanged: (String) -> Unit,
-    onTypeChanged: (String) -> Unit
-) {
-    when (listItem.type) {
-        //TODO EXTRACT TO SEPARATE COMPOSABLE
-        FieldType.NAME -> {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = name,
-                onValueChange = onNameChanged,
-                label = { Text(stringResource(id = R.string.name)) },
-                maxLines = NAME_MAX_LINES
-            )
-        }
-
-        FieldType.DESCRIPTION -> {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = description,
-                onValueChange = onDescriptionChanged,
-                label = { Text(stringResource(id = R.string.description)) },
-                maxLines = DESCRIPTION_MAX_LINES
-            )
-        }
-
-        FieldType.TYPE -> {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = type,
-                onValueChange = onTypeChanged,
-                label = { Text(stringResource(id = R.string.type)) },
-                maxLines = TYPE_MAX_LINES
-            )
-        }
     }
 }
 

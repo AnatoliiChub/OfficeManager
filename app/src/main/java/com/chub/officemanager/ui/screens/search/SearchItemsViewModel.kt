@@ -2,7 +2,7 @@ package com.chub.officemanager.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.chub.officemanager.data.OfficeItemRepository
+import com.chub.officemanager.data.repo.OfficeItemRepository
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel

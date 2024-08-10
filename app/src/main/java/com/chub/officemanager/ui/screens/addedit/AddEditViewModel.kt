@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chub.officemanager.NavArgs
-import com.chub.officemanager.data.OfficeItemRepository
+import com.chub.officemanager.data.repo.OfficeItemRepository
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import com.chub.officemanager.util.Result
