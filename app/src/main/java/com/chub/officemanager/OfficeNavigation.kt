@@ -13,6 +13,7 @@ object OfficeScreens {
 
 object NavArgs {
     const val ITEM_ID = "item_id"
+    const val RELATION = "relation"
 }
 
 object OfficeDestinations {

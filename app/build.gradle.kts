@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.ksp)
     id("com.google.dagger.hilt.android")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -48,6 +49,11 @@ android {
     }
 }
 
+configurations {
+    create("cleanedAnnotations")
+    getByName("implementation").exclude(group = "org.jetbrains", module = "annotations")
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -65,6 +71,9 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.room)
+    ksp(libs.room.compiler)
+    implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

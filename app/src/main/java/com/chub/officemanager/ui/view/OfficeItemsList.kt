@@ -9,7 +9,12 @@ import androidx.compose.ui.unit.dp
 import com.chub.officemanager.domain.OfficeItem
 
 @Composable
-fun OfficeItemsList(list: List<OfficeItem>, onItemClicked: (OfficeItem) -> Unit) {
+fun OfficeItemsList(
+    list: List<OfficeItem>,
+    operations : List<ItemOperation>,
+    onItemClicked: (OfficeItem) -> Unit,
+    onRemoveItem: (OfficeItem) -> Unit = {}
+) {
     val verticalPadding = 12.dp
     val horizontalPadding = 8.dp
     LazyColumn(
@@ -17,11 +22,17 @@ fun OfficeItemsList(list: List<OfficeItem>, onItemClicked: (OfficeItem) -> Unit)
         contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = verticalPadding)
     ) {
         items(list.size) { index ->
-            OfficeItemLayout(list[index], listOf(ItemOperation.Edit, ItemOperation.Delete), {
+            OfficeItemLayout(list[index], operations, {
                 onItemClicked(it)
                 Log.d("OfficeItemsList", "Item clicked : $it")
             }, {
-                Log.d("OfficeItemsList", "Action clicked: $it")
+                if (operations.isNotEmpty()) {
+                    val item = list[index]
+                    when (it) {
+                        ItemOperation.Edit -> onItemClicked(item)
+                        ItemOperation.Delete -> onRemoveItem(item)
+                    }
+                }
             })
         }
     }

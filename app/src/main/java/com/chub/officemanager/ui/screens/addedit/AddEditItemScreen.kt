@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -36,26 +37,27 @@ import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemLayout
 import com.chub.officemanager.ui.view.OfficeTopBar
 
-enum class FieldType {
-    NAME, DESCRIPTION, TYPE
-}
-
-data class InputField(val type: FieldType, val value: String)
-data class Label(val text: String)
-data object AddNewRelation
-
 const val NAME_MAX_LINES = 1
 const val DESCRIPTION_MAX_LINES = 3
 const val TYPE_MAX_LINES = 1
+const val RELATIONS_INIT_KEY = "Relations"
 
 @Composable
 fun AddEditScreen(
-    itemId: Int,
+    itemId: Long,
+    selectedRelation: OfficeItem?,
     onItemClick: (OfficeItem) -> Unit,
     onItemsSaved: () -> Unit,
     onAddButtonClick: () -> Unit,
     viewModel: AddEditViewModel = hiltViewModel()
 ) {
+    //Default savedStateHandle from viewmodel can't handle result back case
+    LaunchedEffect(RELATIONS_INIT_KEY) {
+        selectedRelation?.let {
+            viewModel.onRelationSelected(selectedRelation)
+        }
+    }
+
     val isCreatingNewItem = itemId == NONE
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val title =
@@ -66,7 +68,10 @@ fun AddEditScreen(
             OfficeTopBar(title)
         }, floatingActionButton = {
             FloatingActionButton(
-                onClick = onItemsSaved,
+                onClick = {
+                    viewModel.saveItem()
+                    onItemsSaved()
+                },
             ) {
                 Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
             }
@@ -83,7 +88,7 @@ fun AddEditScreen(
                         viewModel::onTypeChanged,
                         onItemClick,
                         onAddButtonClick,
-                        viewModel::onActionClick
+                        viewModel::onRemoveClick
                     )
                 }
             }
@@ -186,6 +191,7 @@ private fun InputFieldLayout(
     onTypeChanged: (String) -> Unit
 ) {
     when (listItem.type) {
+        //TODO EXTRACT TO SEPARATE COMPOSABLE
         FieldType.NAME -> {
             TextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -217,3 +223,11 @@ private fun InputFieldLayout(
         }
     }
 }
+
+private enum class FieldType {
+    NAME, DESCRIPTION, TYPE
+}
+
+private data class InputField(val type: FieldType, val value: String)
+private data class Label(val text: String)
+private data object AddNewRelation

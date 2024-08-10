@@ -22,6 +22,7 @@ import com.chub.officemanager.domain.OfficeItem
 import com.chub.officemanager.domain.Result
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
 import com.chub.officemanager.ui.view.ErrorLayout
+import com.chub.officemanager.ui.view.ItemOperation
 import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemsList
 import com.chub.officemanager.ui.view.OfficeTopBar
@@ -33,6 +34,7 @@ fun SearchItemsScreen(
     onFabClick: () -> Unit = {},
     viewModel: SearchItemsViewModel = hiltViewModel()
 ) {
+    val areItemsOperable = !isSelectionScreen
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val titleId = if (isSelectionScreen) R.string.title_search_items_to_add else R.string.title_search_items
     OfficeManagerTheme {
@@ -51,7 +53,12 @@ fun SearchItemsScreen(
                 when (val content = state.value) {
                     Result.Loading -> Loading()
                     is Result.Error -> ErrorLayout((state.value as Result.Error).errorMessage)
-                    is Result.Success<SearchItemsUiState> -> Content(content, viewModel, onItemClicked)
+                    is Result.Success<SearchItemsUiState> -> Content(
+                        content,
+                        viewModel,
+                        areItemsOperable,
+                        onItemClicked
+                    )
                 }
             }
         }
@@ -62,6 +69,7 @@ fun SearchItemsScreen(
 private fun Content(
     content: Result.Success<SearchItemsUiState>,
     viewModel: SearchItemsViewModel,
+    isOperable: Boolean,
     onItemClicked: (OfficeItem) -> Unit
 ) {
     Column {
@@ -72,7 +80,8 @@ private fun Content(
             placeholder = { Text(stringResource(id = R.string.search)) },
             trailingIcon = { Icon(Icons.Filled.Search, stringResource(id = R.string.search)) }
         )
-        OfficeItemsList(content.data.items, onItemClicked)
+        val operations = if (isOperable) listOf(ItemOperation.Edit, ItemOperation.Delete) else emptyList()
+        OfficeItemsList(content.data.items, operations, onItemClicked, viewModel::onItemRemove)
     }
 }
 

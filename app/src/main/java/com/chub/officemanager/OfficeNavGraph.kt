@@ -11,6 +11,7 @@ import com.chub.officemanager.OfficeDestinations.ADD_EDIT_OFFICE_ITEM_ROUTE
 import com.chub.officemanager.OfficeDestinations.SEARCH_OFFICE_ITEMS_ROUTE
 import com.chub.officemanager.OfficeDestinations.SEARCH_TO_ADD_ROUTE
 import com.chub.officemanager.OfficeScreens.ADD_EDIT_OFFICE_ITEM
+import com.chub.officemanager.domain.OfficeItem
 import com.chub.officemanager.domain.OfficeItem.Companion.NONE
 import com.chub.officemanager.ui.screens.addedit.AddEditScreen
 import com.chub.officemanager.ui.screens.search.SearchItemsScreen
@@ -22,7 +23,7 @@ fun OfficeNavGraph() {
         navController = navController,
         startDestination = SEARCH_OFFICE_ITEMS_ROUTE,
     ) {
-        composable(SEARCH_OFFICE_ITEMS_ROUTE) { entry ->
+        composable(SEARCH_OFFICE_ITEMS_ROUTE) {
             SearchItemsScreen(onItemClicked = {
                 navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
             }, onFabClick = {
@@ -30,19 +31,22 @@ fun OfficeNavGraph() {
             })
         }
 
-        composable(SEARCH_TO_ADD_ROUTE) { entry ->
+        composable(SEARCH_TO_ADD_ROUTE) {
             SearchItemsScreen(true, onItemClicked = {
-                //TODO add item as result
+                navController.previousBackStackEntry!!.savedStateHandle[NavArgs.RELATION] = it
                 navController.popBackStack()
             })
         }
 
         composable(
             ADD_EDIT_OFFICE_ITEM_ROUTE,
-            arguments = listOf(navArgument(ITEM_ID) { type = NavType.IntType })
+            arguments = listOf(navArgument(ITEM_ID) { type = NavType.LongType })
         ) { entry ->
-            val id = entry.arguments?.getInt(ITEM_ID) ?: NONE
-            AddEditScreen(id, onItemClick = {
+
+            val relation = entry.savedStateHandle.get<OfficeItem>(NavArgs.RELATION)
+            val id = entry.arguments?.getLong(ITEM_ID) ?: NONE
+
+            AddEditScreen(id, relation, onItemClick = {
                 navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
             }, onItemsSaved = {
                 navController.popBackStack()

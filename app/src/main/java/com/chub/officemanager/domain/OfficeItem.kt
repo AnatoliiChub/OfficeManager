@@ -1,13 +1,17 @@
 package com.chub.officemanager.domain
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class OfficeItem(
-    val id: Int = NONE,
+    val id: Long = NONE,
     val name: String = "",
     val description: String = "",
     val type: String = "",
     val relations: List<OfficeItem> = emptyList()
-) {
+) : Parcelable {
     companion object {
-        const val NONE = -1
+        const val NONE = -1L
     }
 }

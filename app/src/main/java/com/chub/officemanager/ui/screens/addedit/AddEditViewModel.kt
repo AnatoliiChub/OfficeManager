@@ -4,53 +4,51 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chub.officemanager.NavArgs
+import com.chub.officemanager.data.OfficeItemRepository
 import com.chub.officemanager.domain.OfficeItem
 import com.chub.officemanager.domain.OfficeItem.Companion.NONE
 import com.chub.officemanager.domain.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AddEditViewModel @Inject constructor(savedStateHandle: SavedStateHandle) : ViewModel() {
+class AddEditViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    private val officeRepo: OfficeItemRepository
+) :
+    ViewModel() {
 
-    private val currentItemId = savedStateHandle.getStateFlow(NavArgs.ITEM_ID, NONE)
-    private val name = MutableStateFlow("")
-    private val description = MutableStateFlow("")
-    private val type = MutableStateFlow("")
-    private val relations = MutableStateFlow<MutableList<OfficeItem>>(mutableListOf())
+    private val temporaryState = TemporaryItemState()
 
     init {
-        currentItemId.value.let { itemId ->
-            if (itemId != NONE) {
-                name.value = "45"
-                description.value = "The best desk I ever had"
-                type.value = "Desk"
-                relations.value = mutableListOf(
-                    OfficeItem(55, "zx spectrum", "The best computer I ever had", "Computer"),
-                    OfficeItem(44, "Chair", "The best chair I ever had", "Chair")
-                )
+        with(temporaryState) {
+            currentItemId.value = savedStateHandle.get<Long>(NavArgs.ITEM_ID) ?: NONE
+            if (currentItemId.value != NONE) {
+                fetchItem()
             }
         }
     }
 
     val uiState: StateFlow<Result<ItemUiState>> =
-        combine(currentItemId, name, description, type, relations) { itemId, name, description, type, relations ->
+        combine(
+            temporaryState.name,
+            temporaryState.description,
+            temporaryState.type,
+            temporaryState.relations
+        ) { name, description, type, relations ->
             Result.Success(
-                if (itemId == NONE) {
-                    ItemUiState()
-                } else {
-                    ItemUiState(
-                        name = name,
-                        description = description,
-                        type = type,
-                        relations = relations
-                    )
-                }
+                ItemUiState(
+                    name = name,
+                    description = description,
+                    type = type,
+                    relations = relations
+                )
             )
         }.stateIn(
             scope = viewModelScope,
@@ -59,27 +57,40 @@ class AddEditViewModel @Inject constructor(savedStateHandle: SavedStateHandle) :
         )
 
     fun onNameChanged(name: String) {
-        this.name.value = name
+        temporaryState.name.value = name
     }
 
     fun onDescriptionChanged(description: String) {
-        this.description.value = description
+        temporaryState.description.value = description
     }
 
     fun onTypeChanged(type: String) {
-        this.type.value = type
+        temporaryState.type.value = type
     }
 
-    fun onActionClick(officeItem: OfficeItem) {
-        relations.value = relations.value.apply {
-            remove(officeItem)
+    fun onRemoveClick(officeItem: OfficeItem) {
+        temporaryState.removeRelation(officeItem)
+    }
+
+    fun saveItem() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val item = temporaryState.toOfficeItem()
+            officeRepo.storeItem(item)
+        }
+    }
+
+    fun onRelationSelected(selectedRelation: OfficeItem) {
+        temporaryState.addRelations(selectedRelation)
+    }
+
+    private fun fetchItem() {
+        viewModelScope.launch(Dispatchers.IO) {
+            officeRepo.getItemById(temporaryState.currentItemId.value).let { item ->
+                temporaryState.update(item)
+            }
         }
     }
 }
 
-data class ItemUiState(
-    val name: String = "",
-    val description: String = "",
-    val type: String = "",
-    val relations: List<OfficeItem> = emptyList()
-)
+
+

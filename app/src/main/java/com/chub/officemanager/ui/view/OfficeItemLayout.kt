@@ -72,13 +72,16 @@ fun OfficeItemLayout(
             Text(modifier = Modifier.padding(bottom = 8.dp), fontWeight = Bold, text = "${item.type} : ${item.name}")
             Text(text = item.description)
         }
-        PopupMenu(
-            isMenuVisible,
-            pressOffset,
-            itemHeight,
-            operations,
-            onActionClick
-        )
+        if(operations.isNotEmpty()) {
+            PopupMenu(
+                isMenuVisible,
+                pressOffset,
+                itemHeight,
+                operations,
+                onActionClick
+            )
+        }
+
     }
 }
 
