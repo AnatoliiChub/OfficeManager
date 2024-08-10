@@ -11,8 +11,8 @@ import com.chub.officemanager.OfficeDestinations.ADD_EDIT_OFFICE_ITEM_ROUTE
 import com.chub.officemanager.OfficeDestinations.SEARCH_OFFICE_ITEMS_ROUTE
 import com.chub.officemanager.OfficeDestinations.SEARCH_TO_ADD_ROUTE
 import com.chub.officemanager.OfficeScreens.ADD_EDIT_OFFICE_ITEM
-import com.chub.officemanager.domain.OfficeItem
-import com.chub.officemanager.domain.OfficeItem.Companion.NONE
+import com.chub.officemanager.util.OfficeItem
+import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import com.chub.officemanager.ui.screens.addedit.AddEditScreen
 import com.chub.officemanager.ui.screens.search.SearchItemsScreen
 

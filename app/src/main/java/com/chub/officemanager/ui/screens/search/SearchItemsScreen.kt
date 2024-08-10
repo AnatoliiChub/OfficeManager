@@ -18,14 +18,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chub.officemanager.R
-import com.chub.officemanager.domain.OfficeItem
-import com.chub.officemanager.domain.Result
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
 import com.chub.officemanager.ui.view.ErrorLayout
 import com.chub.officemanager.ui.view.ItemOperation
 import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemsList
 import com.chub.officemanager.ui.view.OfficeTopBar
+import com.chub.officemanager.util.OfficeItem
+import com.chub.officemanager.util.Result
 
 @Composable
 fun SearchItemsScreen(
@@ -35,6 +35,7 @@ fun SearchItemsScreen(
     viewModel: SearchItemsViewModel = hiltViewModel()
 ) {
     val areItemsOperable = !isSelectionScreen
+    val filter = viewModel.filter.collectAsStateWithLifecycle()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val titleId = if (isSelectionScreen) R.string.title_search_items_to_add else R.string.title_search_items
     OfficeManagerTheme {
@@ -54,8 +55,10 @@ fun SearchItemsScreen(
                     Result.Loading -> Loading()
                     is Result.Error -> ErrorLayout((state.value as Result.Error).errorMessage)
                     is Result.Success<SearchItemsUiState> -> Content(
+                        filter.value,
                         content,
-                        viewModel,
+                        viewModel::onItemRemove,
+                        viewModel::onFilterChanged,
                         areItemsOperable,
                         onItemClicked
                     )
@@ -67,21 +70,23 @@ fun SearchItemsScreen(
 
 @Composable
 private fun Content(
+    filter: String,
     content: Result.Success<SearchItemsUiState>,
-    viewModel: SearchItemsViewModel,
+    onItemRemove: (OfficeItem) -> Unit,
+    onFilterChanged: (String) -> Unit,
     isOperable: Boolean,
     onItemClicked: (OfficeItem) -> Unit
 ) {
     Column {
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            value = content.data.filter,
-            onValueChange = { viewModel.onFilterChanged(it) },
+            value = filter,
+            onValueChange = { onFilterChanged(it) },
             placeholder = { Text(stringResource(id = R.string.search)) },
             trailingIcon = { Icon(Icons.Filled.Search, stringResource(id = R.string.search)) }
         )
         val operations = if (isOperable) listOf(ItemOperation.Edit, ItemOperation.Delete) else emptyList()
-        OfficeItemsList(content.data.items, operations, onItemClicked, viewModel::onItemRemove)
+        OfficeItemsList(content.data.items, operations, onItemClicked, onItemRemove)
     }
 }
 

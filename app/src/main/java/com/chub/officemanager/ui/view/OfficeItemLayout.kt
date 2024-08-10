@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import com.chub.officemanager.domain.OfficeItem
+import com.chub.officemanager.util.OfficeItem
 
 @Composable
 fun OfficeItemLayout(

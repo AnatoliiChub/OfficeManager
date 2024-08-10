@@ -11,10 +11,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemEntityDAO {
-
     @Transaction
-    @Query("SELECT * FROM ItemEntity")
-    fun getAll(): Flow<List<ItemWithRelations>>
+    @Query("SELECT * FROM ItemEntity WHERE name LIKE '%' || :text || '%'" +
+            " OR description LIKE '%' || :text || '%'" +
+            " OR typeId IN (SELECT typeId FROM TypeEntity WHERE name LIKE '%' || :text || '%')")
+    fun search(text: String): Flow<List<ItemWithRelations>>
 
     @Query("SELECT * FROM ItemEntity WHERE itemId = :id")
     suspend fun getById(id: Long): ItemWithRelations

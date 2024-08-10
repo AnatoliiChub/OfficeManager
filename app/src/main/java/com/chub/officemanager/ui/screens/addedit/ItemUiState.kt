@@ -1,6 +1,6 @@
 package com.chub.officemanager.ui.screens.addedit
 
-import com.chub.officemanager.domain.OfficeItem
+import com.chub.officemanager.util.OfficeItem
 
 data class ItemUiState(
     val name: String = "",

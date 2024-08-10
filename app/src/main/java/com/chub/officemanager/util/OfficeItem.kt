@@ -1,4 +1,4 @@
-package com.chub.officemanager.domain
+package com.chub.officemanager.util
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

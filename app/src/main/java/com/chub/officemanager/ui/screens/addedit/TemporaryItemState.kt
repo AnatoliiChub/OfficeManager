@@ -1,7 +1,7 @@
 package com.chub.officemanager.ui.screens.addedit
 
-import com.chub.officemanager.domain.OfficeItem
-import com.chub.officemanager.domain.OfficeItem.Companion.NONE
+import com.chub.officemanager.util.OfficeItem
+import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 

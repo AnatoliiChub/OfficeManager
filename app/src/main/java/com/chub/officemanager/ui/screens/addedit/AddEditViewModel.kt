@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chub.officemanager.NavArgs
 import com.chub.officemanager.data.OfficeItemRepository
-import com.chub.officemanager.domain.OfficeItem
-import com.chub.officemanager.domain.OfficeItem.Companion.NONE
-import com.chub.officemanager.domain.Result
+import com.chub.officemanager.util.OfficeItem
+import com.chub.officemanager.util.OfficeItem.Companion.NONE
+import com.chub.officemanager.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted

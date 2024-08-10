@@ -1,4 +1,4 @@
-package com.chub.officemanager.domain
+package com.chub.officemanager.util
 
 sealed class Result<out T> {
     data object Loading : Result<Nothing>()

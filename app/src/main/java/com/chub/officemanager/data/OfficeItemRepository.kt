@@ -6,7 +6,7 @@ import com.chub.officemanager.data.entity.ItemEntity
 import com.chub.officemanager.data.entity.RelationEntity
 import com.chub.officemanager.data.entity.TypeEntity
 import com.chub.officemanager.data.relations.ItemWithRelations
-import com.chub.officemanager.domain.OfficeItem
+import com.chub.officemanager.util.OfficeItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -42,8 +42,8 @@ class OfficeItemRepository @Inject constructor(
         officeDB.itemEntityDAO().delete(item.id)
     }
 
-    fun getAllItems(): Flow<List<OfficeItem>> {
-        return officeDB.itemEntityDAO().getAll().map { items ->
+    fun search(text: String): Flow<List<OfficeItem>> {
+        return officeDB.itemEntityDAO().search(text).map { items ->
             items.map { itemWithRelations ->
                 map(itemWithRelations)
             }

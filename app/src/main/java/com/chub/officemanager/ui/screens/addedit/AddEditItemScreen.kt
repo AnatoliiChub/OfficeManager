@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chub.officemanager.R
-import com.chub.officemanager.domain.OfficeItem
-import com.chub.officemanager.domain.OfficeItem.Companion.NONE
-import com.chub.officemanager.domain.Result
+import com.chub.officemanager.util.OfficeItem
+import com.chub.officemanager.util.OfficeItem.Companion.NONE
+import com.chub.officemanager.util.Result
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
 import com.chub.officemanager.ui.view.ErrorLayout
 import com.chub.officemanager.ui.view.ItemOperation
