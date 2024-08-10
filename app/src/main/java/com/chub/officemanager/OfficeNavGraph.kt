@@ -7,13 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chub.officemanager.NavArgs.ITEM_ID
+import com.chub.officemanager.OfficeDestinations.ADD_EDIT_OFFICE_ITEM_ROUTE
 import com.chub.officemanager.OfficeDestinations.SEARCH_OFFICE_ITEMS_ROUTE
 import com.chub.officemanager.OfficeDestinations.SEARCH_TO_ADD_ROUTE
 import com.chub.officemanager.OfficeScreens.ADD_EDIT_OFFICE_ITEM
 import com.chub.officemanager.domain.OfficeItem.Companion.NONE
-import com.chub.officemanager.ui.screens.AddEditScreen
-import com.chub.officemanager.ui.screens.SearchItemsScreen
-import com.chub.officemanager.ui.screens.SearchToAddScreen
+import com.chub.officemanager.ui.screens.addedit.AddEditScreen
+import com.chub.officemanager.ui.screens.search.SearchItemsScreen
 
 @Composable
 fun OfficeNavGraph() {
@@ -34,16 +34,16 @@ fun OfficeNavGraph() {
         composable(
             SEARCH_TO_ADD_ROUTE
         ) { entry ->
-            SearchToAddScreen(onItemClicked = {
+            SearchItemsScreen(true, onItemClicked = {
                 //TODO add item as result
                 navController.popBackStack()
             })
         }
         composable(
-            OfficeDestinations.ADD_EDIT_OFFICE_ITEM_ROUTE,
-            arguments = listOf(navArgument(ITEM_ID) { type = NavType.StringType })
+            ADD_EDIT_OFFICE_ITEM_ROUTE,
+            arguments = listOf(navArgument(ITEM_ID) { type = NavType.IntType })
         ) { entry ->
-            val id = entry.arguments?.getString(ITEM_ID)?.toInt() ?: NONE
+            val id = entry.arguments?.getInt(ITEM_ID) ?: NONE
             AddEditScreen(id, onItemClick = {
                 navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
             }, onItemsSaved = {

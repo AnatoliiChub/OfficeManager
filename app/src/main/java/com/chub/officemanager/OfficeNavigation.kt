@@ -18,5 +18,5 @@ object NavArgs {
 object OfficeDestinations {
     const val SEARCH_TO_ADD_ROUTE = SEARCH_OFFICE_ITEMS_TO_ADD
     const val SEARCH_OFFICE_ITEMS_ROUTE = OFFICE_ITEMS_LIST
-    const val ADD_EDIT_OFFICE_ITEM_ROUTE = "$ADD_EDIT_OFFICE_ITEM/{$ITEM_ID}"
+    const val ADD_EDIT_OFFICE_ITEM_ROUTE = "{$ADD_EDIT_OFFICE_ITEM}/{$ITEM_ID}"
 }
