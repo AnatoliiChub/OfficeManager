@@ -16,6 +16,6 @@ fun InputText(text: String, onTextChanged: (String) -> Unit, labelRes: Int, maxL
         value = text,
         onValueChange = onTextChanged,
         label = { Text(stringResource(id = labelRes)) },
-        maxLines = DEFAULT_MAX_LINES
+        maxLines = maxLines
     )
 }

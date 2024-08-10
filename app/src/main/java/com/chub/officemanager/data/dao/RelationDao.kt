@@ -9,7 +9,7 @@ import com.chub.officemanager.data.entity.RelationEntity
 @Dao
 interface RelationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(relationEntities: List<RelationEntity>)
+    suspend fun insertAll(relationEntities: List<RelationEntity>)
 
     @Query("DELETE FROM RelationEntity WHERE parentId = :id")
     suspend fun delete(id: Long)
