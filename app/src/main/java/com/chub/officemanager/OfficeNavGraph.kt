@@ -22,23 +22,21 @@ fun OfficeNavGraph() {
         navController = navController,
         startDestination = SEARCH_OFFICE_ITEMS_ROUTE,
     ) {
-        composable(
-            SEARCH_OFFICE_ITEMS_ROUTE
-        ) { entry ->
+        composable(SEARCH_OFFICE_ITEMS_ROUTE) { entry ->
             SearchItemsScreen(onItemClicked = {
                 navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
             }, onFabClick = {
                 navController.navigate("$ADD_EDIT_OFFICE_ITEM/$NONE")
             })
         }
-        composable(
-            SEARCH_TO_ADD_ROUTE
-        ) { entry ->
+
+        composable(SEARCH_TO_ADD_ROUTE) { entry ->
             SearchItemsScreen(true, onItemClicked = {
                 //TODO add item as result
                 navController.popBackStack()
             })
         }
+
         composable(
             ADD_EDIT_OFFICE_ITEM_ROUTE,
             arguments = listOf(navArgument(ITEM_ID) { type = NavType.IntType })
