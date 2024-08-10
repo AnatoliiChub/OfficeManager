@@ -75,6 +75,7 @@ class AddEditViewModel @Inject constructor(
     fun saveItem() {
         viewModelScope.launch(Dispatchers.IO) {
             val item = temporaryState.toOfficeItem()
+
             officeRepo.storeItem(item)
         }
     }
