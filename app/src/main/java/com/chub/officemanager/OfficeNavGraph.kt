@@ -46,9 +46,7 @@ fun OfficeNavGraph() {
         ) { entry ->
             val relation = entry.savedStateHandle.get<OfficeItem>(NavArgs.RELATION)
             val id = entry.arguments?.getLong(ITEM_ID) ?: NONE
-            AddEditScreen(id, relation, onItemClick = {
-                navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
-            },  onAddButtonClick = {
+            AddEditScreen(id, relation, onAddButtonClick = {
                 navController.navigate(SEARCH_TO_ADD_ROUTE)
             }, onBack = {
                 navController.popBackStack()

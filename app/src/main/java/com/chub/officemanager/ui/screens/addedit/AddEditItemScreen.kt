@@ -48,7 +48,6 @@ const val DESCRIPTION_MAX_LINES = 3
 fun AddEditScreen(
     itemId: Long,
     selectedRelation: OfficeItem?,
-    onItemClick: (OfficeItem) -> Unit,
     onAddButtonClick: () -> Unit,
     viewModel: AddEditViewModel = hiltViewModel(),
     onBack: () -> Unit
@@ -93,13 +92,13 @@ fun AddEditScreen(
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (val content = state.value) {
                     Result.Loading -> Loading()
-                    is Result.Error -> ErrorLayout(stringResource(id = R.string.error))
+                    is Result.Error -> ErrorLayout(content.errorMessage)
                     is Result.Success<ItemUiState> -> Content(
                         content.data,
                         viewModel::onNameChanged,
                         viewModel::onDescriptionChanged,
                         viewModel::onTypeChanged,
-                        onItemClick,
+                        {},
                         onAddButtonClick,
                         viewModel::onRemoveClick
                     )

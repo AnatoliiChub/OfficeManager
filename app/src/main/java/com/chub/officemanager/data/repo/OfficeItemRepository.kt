@@ -6,6 +6,7 @@ import com.chub.officemanager.data.OfficeDB
 import com.chub.officemanager.data.entity.ItemEntity
 import com.chub.officemanager.data.entity.RelationEntity
 import com.chub.officemanager.data.entity.TypeEntity
+import com.chub.officemanager.exceptioin.ItemDuplicatedException
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +35,12 @@ class OfficeItemRepository @Inject constructor(
             RelationEntity(parentId = itemId, childId = relationId)
         }.also {
             officeDB.relationDAO().delete(itemId)
-            officeDB.relationDAO().insertAll(it)
+            try {
+                officeDB.relationDAO().insertAll(it)
+            } catch (exception: SQLiteConstraintException) {
+                Log.e("OfficeItemRepository get", "exception : $exception")
+                throw ItemDuplicatedException()
+            }
         }
     }
 

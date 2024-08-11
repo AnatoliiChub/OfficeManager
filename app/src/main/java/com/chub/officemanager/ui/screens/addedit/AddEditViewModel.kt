@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chub.officemanager.NavArgs
 import com.chub.officemanager.data.repo.OfficeItemRepository
+import com.chub.officemanager.exceptioin.ItemDuplicatedException
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import com.chub.officemanager.util.Result
@@ -83,8 +84,12 @@ class AddEditViewModel @Inject constructor(
                 val item = temporaryState.toOfficeItem()
                 officeRepo.storeItem(item)
                 onSaved()
-            } catch (e: Exception) {
-                temporaryState.error.value = e.message ?: "Error"
+            } catch (exception: Exception) {
+                when (exception) {
+                    is ItemDuplicatedException -> temporaryState.error.value =
+                        "You tried to add duplicated item or item which already related to another object"
+                    else -> temporaryState.error.value = "Something went wrong"
+                }
             }
         }
     }
