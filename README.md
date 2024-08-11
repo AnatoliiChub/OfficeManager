@@ -1,6 +1,17 @@
 # OfficeManager App
 **Saal Digital Assessment task**
 
+## Table of contents
+- [Requirements](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#requirements)
+- [Technologies and Architecture](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#technologies-and-architecture)
+  - [Database](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#database)
+- [UI/UX](UI/UX)
+  - [Add object screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#objects-screen)
+  - [Objects screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#add-object)
+  - [Edit object screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#edit-object)
+  - [Select a relation to Add screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#select-a-relation-to-add)
+  - [Video Demo](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#video-demo)
+
 ## Requirements
 
 I've implemented the app according to requirements, but there are a few points that are not clear:
@@ -40,7 +51,7 @@ To add a new object just press a FAB button.
 To edit items users have 2 options: just click on list item or long press on list item to open Popup menu and select Edit option.
 To delete items use a long press on the item and select the Delete option from the popup menu.
 
-### Add object
+### Add object screen
 If the user clicks on the FAB button on the Object screen the app redirects it to the Add Object screen.
 <div align="center">
 <img src="https://github.com/user-attachments/assets/85883110-c99c-4658-b9c0-5740fe9d0b48" width="300" height="600" />
@@ -49,13 +60,13 @@ It contains a navigation button in the topbar, 3 fields to fill out attributes: 
 To add a new relation user should press on the "Add relations" button, it's located right under the "Relations :" label on the screenshot, if the object has some relations the button will be located at the end of the list. It redirects users to the "Select a relation to Add" screen.
 To save an object, the user should press the FAB button. If the user left the screen and did not press a save button, the object will not be created.
 
-### Edit object
+### Edit object screen
 <div align="center">
 <img src="https://github.com/user-attachments/assets/a2a10b4e-194b-403b-9c74-6552d0750827" width="300" height="600" />
 </div>
 Looks the same as Add object screen.
 
-### Select a relation to Add
+### Select a relation to Add screen
 <div align="center">
 <img src="https://github.com/user-attachments/assets/44448e2a-0659-4b49-b842-d5d7510cc001" width="300" height="600" />
 </div>
