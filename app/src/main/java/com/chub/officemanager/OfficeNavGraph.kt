@@ -35,6 +35,8 @@ fun OfficeNavGraph() {
             SearchItemsScreen(true, onItemClicked = {
                 navController.popBackStack()
                 navController.currentBackStackEntry!!.savedStateHandle[NavArgs.RELATION] = it
+            }, onBack = {
+                navController.popBackStack()
             })
         }
 
@@ -46,10 +48,10 @@ fun OfficeNavGraph() {
             val id = entry.arguments?.getLong(ITEM_ID) ?: NONE
             AddEditScreen(id, relation, onItemClick = {
                 navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
-            }, onItemsSaved = {
-                navController.popBackStack()
-            }, onAddButtonClick = {
+            },  onAddButtonClick = {
                 navController.navigate(SEARCH_TO_ADD_ROUTE)
+            }, onBack = {
+                navController.popBackStack()
             })
         }
     }

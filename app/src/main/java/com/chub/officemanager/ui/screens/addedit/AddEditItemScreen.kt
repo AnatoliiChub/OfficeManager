@@ -16,9 +16,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -36,6 +40,7 @@ import com.chub.officemanager.ui.view.OfficeTopBar
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import com.chub.officemanager.util.Result
+import kotlinx.coroutines.launch
 
 const val DESCRIPTION_MAX_LINES = 3
 
@@ -44,9 +49,9 @@ fun AddEditScreen(
     itemId: Long,
     selectedRelation: OfficeItem?,
     onItemClick: (OfficeItem) -> Unit,
-    onItemsSaved: () -> Unit,
     onAddButtonClick: () -> Unit,
-    viewModel: AddEditViewModel = hiltViewModel()
+    viewModel: AddEditViewModel = hiltViewModel(),
+    onBack: () -> Unit
 ) {
     //Default savedStateHandle from viewmodel can't handle result back case
     LaunchedEffect(selectedRelation) {
@@ -56,23 +61,32 @@ fun AddEditScreen(
     }
 
     val isCreatingNewItem = itemId == NONE
+    val title = if (isCreatingNewItem) stringResource(id = R.string.title_add_items)
+    else stringResource(id = R.string.title_edit_items)
+
+    val savedLabel = stringResource(id = R.string.object_was_saved)
     val state = viewModel.uiState.collectAsStateWithLifecycle()
-    val title =
-        if (isCreatingNewItem) stringResource(id = R.string.title_add_items) else stringResource(id = R.string.title_edit_items)
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
 
     OfficeManagerTheme {
         Scaffold(topBar = {
-            OfficeTopBar(title)
+            OfficeTopBar(title, onNavigationClick = onBack)
         }, floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    viewModel.saveItem()
-                    onItemsSaved()
+                    viewModel.saveItem {
+                        coroutineScope.launch {
+                            snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
+                        }
+                    }
                 },
             ) {
                 Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
             }
-
+        }, snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState)
         }) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (val content = state.value) {
@@ -126,10 +140,7 @@ private fun BoxScope.Content(
                         FieldType.NAME -> InputText(state.name, onNameChanged, R.string.name)
                         FieldType.DESCRIPTION -> {
                             InputText(
-                                state.description,
-                                onDescriptionChanged,
-                                R.string.description,
-                                DESCRIPTION_MAX_LINES
+                                state.description, onDescriptionChanged, R.string.description, DESCRIPTION_MAX_LINES
                             )
                         }
 
@@ -139,8 +150,10 @@ private fun BoxScope.Content(
 
                 is Label -> RelationsLabel(listItem)
                 is OfficeItem -> {
-                    OfficeItemLayout(item = listItem, listOf(ItemOperation.Delete),
-                        onClick = onItemClick, onActionClick = {
+                    OfficeItemLayout(item = listItem,
+                        listOf(ItemOperation.Delete),
+                        onClick = onItemClick,
+                        onActionClick = {
                             if (it == ItemOperation.Delete) {
                                 onRemoveAction(listItem)
                             }
@@ -169,11 +182,9 @@ private fun BoxScope.AddNewRelationButton(onAddButtonClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .align(Alignment.Center),
-        colors = CardDefaults.cardColors(
+            .align(Alignment.Center), colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary,
-        ),
-        onClick = onAddButtonClick
+        ), onClick = onAddButtonClick
     ) {
         Icon(
             modifier = Modifier

@@ -10,7 +10,8 @@ class TemporaryItemState(
     val name: MutableStateFlow<String> = MutableStateFlow(""),
     val description: MutableStateFlow<String> = MutableStateFlow(""),
     val type: MutableStateFlow<String> = MutableStateFlow(""),
-    val relations: MutableStateFlow<MutableList<OfficeItem>> = MutableStateFlow(mutableListOf())
+    val relations: MutableStateFlow<MutableList<OfficeItem>> = MutableStateFlow(mutableListOf()),
+    val error : MutableStateFlow<String> = MutableStateFlow("")
 ) {
     fun update(item: OfficeItem) {
         name.value = item.name

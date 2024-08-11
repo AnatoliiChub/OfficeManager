@@ -40,16 +40,21 @@ class AddEditViewModel @Inject constructor(
             temporaryState.name,
             temporaryState.description,
             temporaryState.type,
-            temporaryState.relations
-        ) { name, description, type, relations ->
-            Result.Success(
-                ItemUiState(
-                    name = name,
-                    description = description,
-                    type = type,
-                    relations = relations
+            temporaryState.relations,
+            temporaryState.error
+        ) { name, description, type, relations, error ->
+            if (error.isNotBlank()) {
+                Result.Error(error)
+            } else {
+                Result.Success(
+                    ItemUiState(
+                        name = name,
+                        description = description,
+                        type = type,
+                        relations = relations
+                    )
                 )
-            )
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(500L),
@@ -72,11 +77,15 @@ class AddEditViewModel @Inject constructor(
         temporaryState.removeRelation(officeItem)
     }
 
-    fun saveItem() {
+    fun saveItem(onSaved: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            val item = temporaryState.toOfficeItem()
-
-            officeRepo.storeItem(item)
+            try {
+                val item = temporaryState.toOfficeItem()
+                officeRepo.storeItem(item)
+                onSaved()
+            } catch (e: Exception) {
+                temporaryState.error.value = e.message ?: "Error"
+            }
         }
     }
 
