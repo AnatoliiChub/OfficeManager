@@ -1,8 +1,9 @@
 package com.chub.officemanager.data.repo
 
 import android.database.sqlite.SQLiteConstraintException
-import android.util.Log
-import com.chub.officemanager.data.OfficeDB
+import com.chub.officemanager.data.dao.ItemEntityDao
+import com.chub.officemanager.data.dao.RelationDao
+import com.chub.officemanager.data.dao.TypeEntityDao
 import com.chub.officemanager.data.entity.ItemEntity
 import com.chub.officemanager.data.entity.RelationEntity
 import com.chub.officemanager.data.entity.TypeEntity
@@ -14,46 +15,46 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class OfficeItemRepository @Inject constructor(
-    private val officeDB: OfficeDB
+    private val itemDao: ItemEntityDao,
+    private val relationDao: RelationDao,
+    private val typeDao: TypeEntityDao
 ) {
     suspend fun storeItem(item: OfficeItem) {
-        var itemId = item.id
-        val typeId = try {
-            officeDB.typeEntityDAO().insert(TypeEntity(name = item.type))
+        val typeId = getTypeId(item.type)
+        val itemId = if (item.id == NONE) itemDao.insert(createItemEntity(item, typeId)) else item.id
+        storeRelations(itemId, item.relations.map { RelationEntity(parentId = itemId, childId = it.id) })
+    }
+
+    private suspend fun getTypeId(type: String): Long {
+        return try {
+            typeDao.insert(TypeEntity(name = type))
         } catch (exception: SQLiteConstraintException) {
-            Log.e("OfficeItemRepository get", "exception : $exception")
-            officeDB.typeEntityDAO().getByName(item.type)!!.typeId
-        }
-        val result = officeDB.itemEntityDAO().insert(
-            ItemEntity(itemId = item.id, name = item.name, description = item.description, typeId = typeId)
-        )
-        if (itemId == NONE) {
-            itemId = result
-        }
-        item.relations.map {
-            val relationId = it.id
-            RelationEntity(parentId = itemId, childId = relationId)
-        }.also {
-            officeDB.relationDAO().delete(itemId)
-            try {
-                officeDB.relationDAO().insertAll(it)
-            } catch (exception: SQLiteConstraintException) {
-                Log.e("OfficeItemRepository get", "exception : $exception")
-                throw ItemDuplicatedException()
-            }
+            typeDao.getByName(type)!!.typeId
         }
     }
 
+    private suspend fun storeRelations(itemId: Long, relations: List<RelationEntity>) {
+        relationDao.delete(itemId)
+        try {
+            relationDao.insertAll(relations)
+        } catch (exception: SQLiteConstraintException) {
+            throw ItemDuplicatedException()
+        }
+    }
+
+    private fun createItemEntity(item: OfficeItem, typeId: Long) = ItemEntity(
+        itemId = item.id, name = item.name, description = item.description, typeId = typeId
+    )
+
     suspend fun getItemById(id: Long): OfficeItem {
-        val itemWithRelations = officeDB.itemEntityDAO().getById(id)
-        return itemWithRelations.toOfficeItem()
+        return itemDao.getById(id).toOfficeItem()
     }
 
     suspend fun removeItem(item: OfficeItem) {
-        officeDB.itemEntityDAO().delete(item.id)
+        itemDao.delete(item.id)
     }
 
     fun search(text: String): Flow<List<OfficeItem>> {
-        return officeDB.itemEntityDAO().search(text).map { items -> items.map { it.toOfficeItem() } }
+        return itemDao.search(text).map { items -> items.map { it.toOfficeItem() } }
     }
 }
