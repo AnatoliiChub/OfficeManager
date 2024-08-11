@@ -74,16 +74,18 @@ fun AddEditScreen(
         Scaffold(topBar = {
             OfficeTopBar(title, onNavigationClick = onBack)
         }, floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.saveItem {
-                        coroutineScope.launch {
-                            snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
+            if (state.value is Result.Success<ItemUiState>) {
+                FloatingActionButton(
+                    onClick = {
+                        viewModel.saveItem {
+                            coroutineScope.launch {
+                                snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
+                            }
                         }
-                    }
-                },
-            ) {
-                Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
+                    },
+                ) {
+                    Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
+                }
             }
         }, snackbarHost = {
             SnackbarHost(hostState = snackBarHostState)
