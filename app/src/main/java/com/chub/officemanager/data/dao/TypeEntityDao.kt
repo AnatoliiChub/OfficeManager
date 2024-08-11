@@ -9,8 +9,8 @@ import com.chub.officemanager.data.entity.TypeEntity
 interface TypeEntityDao {
 
     @Insert
-    suspend fun insert(user: TypeEntity): Long
+    fun insert(user: TypeEntity): Long
 
     @Query("SELECT * FROM TypeEntity WHERE name = :name")
-    suspend fun getByName(name: String): TypeEntity?
+    fun getByName(name: String): TypeEntity?
 }

@@ -38,10 +38,11 @@ class DataModule {
 
     @Provides
     fun provideOfficeItemRepository(
+        database: OfficeDB,
         itemEntityDao: ItemEntityDao,
         relationDao: RelationDao,
         typeEntityDao: TypeEntityDao
     ): OfficeItemRepository {
-        return OfficeItemRepository(itemEntityDao, relationDao, typeEntityDao)
+        return OfficeItemRepository(database, itemEntityDao, relationDao, typeEntityDao)
     }
 }
