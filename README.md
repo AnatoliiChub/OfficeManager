@@ -7,9 +7,9 @@
   - [Database](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#database)
 - [UI/UX](UI/UX)
   - [Add object screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#objects-screen)
-  - [Objects screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#add-object)
-  - [Edit object screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#edit-object)
-  - [Select a relation to Add screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#select-a-relation-to-add)
+  - [Objects screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#add-object-screen)
+  - [Edit object screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#edit-object-screen)
+  - [Select a relation to Add screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#select-a-relation-to-add-screen)
   - [Video Demo](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#video-demo)
 
 ## Requirements
