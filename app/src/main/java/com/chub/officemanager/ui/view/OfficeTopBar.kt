@@ -1,6 +1,7 @@
 package com.chub.officemanager.ui.view
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,6 +18,7 @@ import com.chub.officemanager.R
 @Composable
 fun OfficeTopBar(
     title: String,
+    onNavigationClick: (() -> Unit)? = null,
 ) {
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -30,6 +32,16 @@ fun OfficeTopBar(
                     imageVector = Icons.Filled.Menu,
                     contentDescription = stringResource(id = R.string.menu)
                 )
+            }
+        },
+        navigationIcon = {
+            onNavigationClick?.let {
+                IconButton(onClick = onNavigationClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(id = R.string.menu)
+                    )
+                }
             }
         }
     )

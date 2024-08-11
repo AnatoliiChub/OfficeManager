@@ -12,6 +12,6 @@ data class OfficeItem(
     val relations: List<OfficeItem> = emptyList()
 ) : Parcelable {
     companion object {
-        const val NONE = -1L
+        const val NONE = 0L
     }
 }

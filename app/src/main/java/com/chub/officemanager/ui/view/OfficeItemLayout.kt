@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
@@ -41,6 +42,7 @@ fun OfficeItemLayout(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 96.dp, max = 160.dp)
             .indication(interactionSource, LocalIndication.current)
             .pointerInput(true) {
                 detectTapGestures(
@@ -72,7 +74,7 @@ fun OfficeItemLayout(
             Text(modifier = Modifier.padding(bottom = 8.dp), fontWeight = Bold, text = "${item.type} : ${item.name}")
             Text(text = item.description)
         }
-        if(operations.isNotEmpty()) {
+        if (operations.isNotEmpty()) {
             PopupMenu(
                 isMenuVisible,
                 pressOffset,

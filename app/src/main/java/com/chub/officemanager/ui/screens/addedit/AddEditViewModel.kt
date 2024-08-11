@@ -4,7 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chub.officemanager.NavArgs
-import com.chub.officemanager.data.OfficeItemRepository
+import com.chub.officemanager.data.repo.OfficeItemRepository
+import com.chub.officemanager.exceptioin.ItemDuplicatedException
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import com.chub.officemanager.util.Result
@@ -40,16 +41,21 @@ class AddEditViewModel @Inject constructor(
             temporaryState.name,
             temporaryState.description,
             temporaryState.type,
-            temporaryState.relations
-        ) { name, description, type, relations ->
-            Result.Success(
-                ItemUiState(
-                    name = name,
-                    description = description,
-                    type = type,
-                    relations = relations
+            temporaryState.relations,
+            temporaryState.error
+        ) { name, description, type, relations, error ->
+            if (error.isNotBlank()) {
+                Result.Error(error)
+            } else {
+                Result.Success(
+                    ItemUiState(
+                        name = name,
+                        description = description,
+                        type = type,
+                        relations = relations
+                    )
                 )
-            )
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(500L),
@@ -72,10 +78,19 @@ class AddEditViewModel @Inject constructor(
         temporaryState.removeRelation(officeItem)
     }
 
-    fun saveItem() {
+    fun saveItem(onSaved: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            val item = temporaryState.toOfficeItem()
-            officeRepo.storeItem(item)
+            try {
+                val item = temporaryState.toOfficeItem()
+                officeRepo.storeItem(item)
+                onSaved()
+            } catch (exception: Exception) {
+                when (exception) {
+                    is ItemDuplicatedException -> temporaryState.error.value =
+                        "You tried to add duplicated item or item which already related to another object"
+                    else -> temporaryState.error.value = "Something went wrong"
+                }
+            }
         }
     }
 

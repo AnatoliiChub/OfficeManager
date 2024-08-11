@@ -16,10 +16,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -27,66 +30,75 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chub.officemanager.R
-import com.chub.officemanager.util.OfficeItem
-import com.chub.officemanager.util.OfficeItem.Companion.NONE
-import com.chub.officemanager.util.Result
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
 import com.chub.officemanager.ui.view.ErrorLayout
+import com.chub.officemanager.ui.view.InputText
 import com.chub.officemanager.ui.view.ItemOperation
 import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemLayout
 import com.chub.officemanager.ui.view.OfficeTopBar
+import com.chub.officemanager.util.OfficeItem
+import com.chub.officemanager.util.OfficeItem.Companion.NONE
+import com.chub.officemanager.util.Result
+import kotlinx.coroutines.launch
 
-const val NAME_MAX_LINES = 1
 const val DESCRIPTION_MAX_LINES = 3
-const val TYPE_MAX_LINES = 1
-const val RELATIONS_INIT_KEY = "Relations"
 
 @Composable
 fun AddEditScreen(
     itemId: Long,
     selectedRelation: OfficeItem?,
-    onItemClick: (OfficeItem) -> Unit,
-    onItemsSaved: () -> Unit,
     onAddButtonClick: () -> Unit,
-    viewModel: AddEditViewModel = hiltViewModel()
+    viewModel: AddEditViewModel = hiltViewModel(),
+    onBack: () -> Unit
 ) {
     //Default savedStateHandle from viewmodel can't handle result back case
-    LaunchedEffect(RELATIONS_INIT_KEY) {
+    LaunchedEffect(selectedRelation) {
         selectedRelation?.let {
             viewModel.onRelationSelected(selectedRelation)
         }
     }
 
     val isCreatingNewItem = itemId == NONE
+    val title = if (isCreatingNewItem) stringResource(id = R.string.title_add_items)
+    else stringResource(id = R.string.title_edit_items)
+
+    val savedLabel = stringResource(id = R.string.object_was_saved)
     val state = viewModel.uiState.collectAsStateWithLifecycle()
-    val title =
-        if (isCreatingNewItem) stringResource(id = R.string.title_add_items) else stringResource(id = R.string.title_edit_items)
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
 
     OfficeManagerTheme {
         Scaffold(topBar = {
-            OfficeTopBar(title)
+            OfficeTopBar(title, onNavigationClick = onBack)
         }, floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.saveItem()
-                    onItemsSaved()
-                },
-            ) {
-                Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
+            if (state.value is Result.Success<ItemUiState>) {
+                FloatingActionButton(
+                    onClick = {
+                        viewModel.saveItem {
+                            coroutineScope.launch {
+                                snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
+                            }
+                        }
+                    },
+                ) {
+                    Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
+                }
             }
-
+        }, snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState)
         }) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (val content = state.value) {
                     Result.Loading -> Loading()
-                    is Result.Error -> ErrorLayout((state.value as Result.Error).errorMessage)
+                    is Result.Error -> ErrorLayout(content.errorMessage)
                     is Result.Success<ItemUiState> -> Content(
                         content.data,
                         viewModel::onNameChanged,
                         viewModel::onDescriptionChanged,
                         viewModel::onTypeChanged,
-                        onItemClick,
+                        {},
                         onAddButtonClick,
                         viewModel::onRemoveClick
                     )
@@ -125,17 +137,24 @@ private fun BoxScope.Content(
         items(fields.size) { index ->
             when (val listItem = fields[index]) {
                 is InputField -> {
-                    InputFieldLayout(
-                        listItem, state.name, state.description, state.type,
-                        onNameChanged = onNameChanged,
-                        onDescriptionChanged = onDescriptionChanged, onTypeChanged = onTypeChanged
-                    )
+                    when (listItem.type) {
+                        FieldType.NAME -> InputText(state.name, onNameChanged, R.string.name)
+                        FieldType.DESCRIPTION -> {
+                            InputText(
+                                state.description, onDescriptionChanged, R.string.description, DESCRIPTION_MAX_LINES
+                            )
+                        }
+
+                        FieldType.TYPE -> InputText(state.type, onTypeChanged, R.string.type)
+                    }
                 }
 
                 is Label -> RelationsLabel(listItem)
                 is OfficeItem -> {
-                    OfficeItemLayout(item = listItem, listOf(ItemOperation.Delete),
-                        onClick = onItemClick, onActionClick = {
+                    OfficeItemLayout(item = listItem,
+                        listOf(ItemOperation.Delete),
+                        onClick = onItemClick,
+                        onActionClick = {
                             if (it == ItemOperation.Delete) {
                                 onRemoveAction(listItem)
                             }
@@ -164,11 +183,9 @@ private fun BoxScope.AddNewRelationButton(onAddButtonClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .align(Alignment.Center),
-        colors = CardDefaults.cardColors(
+            .align(Alignment.Center), colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary,
-        ),
-        onClick = onAddButtonClick
+        ), onClick = onAddButtonClick
     ) {
         Icon(
             modifier = Modifier
@@ -177,50 +194,6 @@ private fun BoxScope.AddNewRelationButton(onAddButtonClick: () -> Unit) {
             imageVector = Icons.Filled.Add,
             contentDescription = stringResource(id = R.string.done_action)
         )
-    }
-}
-
-@Composable
-private fun InputFieldLayout(
-    listItem: InputField,
-    name: String,
-    description: String,
-    type: String,
-    onNameChanged: (String) -> Unit,
-    onDescriptionChanged: (String) -> Unit,
-    onTypeChanged: (String) -> Unit
-) {
-    when (listItem.type) {
-        //TODO EXTRACT TO SEPARATE COMPOSABLE
-        FieldType.NAME -> {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = name,
-                onValueChange = onNameChanged,
-                label = { Text(stringResource(id = R.string.name)) },
-                maxLines = NAME_MAX_LINES
-            )
-        }
-
-        FieldType.DESCRIPTION -> {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = description,
-                onValueChange = onDescriptionChanged,
-                label = { Text(stringResource(id = R.string.description)) },
-                maxLines = DESCRIPTION_MAX_LINES
-            )
-        }
-
-        FieldType.TYPE -> {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = type,
-                onValueChange = onTypeChanged,
-                label = { Text(stringResource(id = R.string.type)) },
-                maxLines = TYPE_MAX_LINES
-            )
-        }
     }
 }
 
