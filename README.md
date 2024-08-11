@@ -5,7 +5,7 @@
 - [Requirements](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#requirements)
 - [Technologies and Architecture](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#technologies-and-architecture)
   - [Database](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#database)
-- [UI/UX](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#uiux))
+- [UI/UX](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#uiux)
   - [Objects screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#objects-screen)
   - [Add object screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#add-object-screen)
   - [Edit object screen](https://github.com/AnatoliiChub/OfficeManager?tab=readme-ov-file#edit-object-screen)
