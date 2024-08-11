@@ -10,7 +10,7 @@ import com.chub.officemanager.data.relations.ItemWithRelations
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ItemEntityDAO {
+interface ItemEntityDao {
     @Transaction
     @Query("SELECT * FROM ItemEntity" +
             " WHERE name LIKE '%' || :text || '%' OR description LIKE '%' || :text || '%'" +

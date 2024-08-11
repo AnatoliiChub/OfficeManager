@@ -3,6 +3,9 @@ package com.chub.officemanager.di
 import android.content.Context
 import androidx.room.Room
 import com.chub.officemanager.data.OfficeDB
+import com.chub.officemanager.data.dao.ItemEntityDao
+import com.chub.officemanager.data.dao.RelationDao
+import com.chub.officemanager.data.dao.TypeEntityDao
 import com.chub.officemanager.data.repo.OfficeItemRepository
 import dagger.Module
 import dagger.Provides
@@ -27,9 +30,18 @@ class DataModule {
     @Provides
     fun provideItemEntityDAO(database: OfficeDB) = database.itemEntityDAO()
 
+    @Provides
+    fun provideRelationEntityDAO(database: OfficeDB) = database.relationDAO()
 
     @Provides
-    fun provideOfficeItemRepository(database: OfficeDB): OfficeItemRepository {
-        return OfficeItemRepository(database)
+    fun provideTypeEntityDAO(database: OfficeDB) = database.typeEntityDAO()
+
+    @Provides
+    fun provideOfficeItemRepository(
+        itemEntityDao: ItemEntityDao,
+        relationDao: RelationDao,
+        typeEntityDao: TypeEntityDao
+    ): OfficeItemRepository {
+        return OfficeItemRepository(itemEntityDao, relationDao, typeEntityDao)
     }
 }

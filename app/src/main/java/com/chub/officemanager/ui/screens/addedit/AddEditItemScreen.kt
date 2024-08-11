@@ -21,6 +21,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import com.chub.officemanager.ui.view.OfficeTopBar
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import com.chub.officemanager.util.Result
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 const val DESCRIPTION_MAX_LINES = 3
@@ -62,30 +64,16 @@ fun AddEditScreen(
     val isCreatingNewItem = itemId == NONE
     val title = if (isCreatingNewItem) stringResource(id = R.string.title_add_items)
     else stringResource(id = R.string.title_edit_items)
-
     val savedLabel = stringResource(id = R.string.object_was_saved)
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-
     OfficeManagerTheme {
         Scaffold(topBar = {
             OfficeTopBar(title, onNavigationClick = onBack)
         }, floatingActionButton = {
-            if (state.value is Result.Success<ItemUiState>) {
-                FloatingActionButton(
-                    onClick = {
-                        viewModel.saveItem {
-                            coroutineScope.launch {
-                                snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
-                            }
-                        }
-                    },
-                ) {
-                    Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
-                }
-            }
+            Fab(state, viewModel::saveItem, coroutineScope, snackBarHostState, savedLabel)
         }, snackbarHost = {
             SnackbarHost(hostState = snackBarHostState)
         }) { innerPadding ->
@@ -98,7 +86,6 @@ fun AddEditScreen(
                         viewModel::onNameChanged,
                         viewModel::onDescriptionChanged,
                         viewModel::onTypeChanged,
-                        {},
                         onAddButtonClick,
                         viewModel::onRemoveClick
                     )
@@ -109,12 +96,34 @@ fun AddEditScreen(
 }
 
 @Composable
+private fun Fab(
+    state: State<Result<ItemUiState>>,
+    onSaveItem: (() -> Unit) -> Unit,
+    coroutineScope: CoroutineScope,
+    snackBarHostState: SnackbarHostState,
+    savedLabel: String
+) {
+    if (state.value is Result.Success<ItemUiState>) {
+        FloatingActionButton(
+            onClick = {
+                onSaveItem {
+                    coroutineScope.launch {
+                        snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
+                    }
+                }
+            },
+        ) {
+            Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
+        }
+    }
+}
+
+@Composable
 private fun BoxScope.Content(
     state: ItemUiState,
     onNameChanged: (String) -> Unit,
     onDescriptionChanged: (String) -> Unit,
     onTypeChanged: (String) -> Unit,
-    onItemClick: (OfficeItem) -> Unit,
     onAddButtonClick: () -> Unit,
     onRemoveAction: (OfficeItem) -> Unit,
 ) {
@@ -153,7 +162,7 @@ private fun BoxScope.Content(
                 is OfficeItem -> {
                     OfficeItemLayout(item = listItem,
                         listOf(ItemOperation.Delete),
-                        onClick = onItemClick,
+                        onClick = {},
                         onActionClick = {
                             if (it == ItemOperation.Delete) {
                                 onRemoveAction(listItem)
