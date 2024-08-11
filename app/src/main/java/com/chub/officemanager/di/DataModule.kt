@@ -3,7 +3,6 @@ package com.chub.officemanager.di
 import android.content.Context
 import androidx.room.Room
 import com.chub.officemanager.data.OfficeDB
-import com.chub.officemanager.data.repo.OfficeItemMapper
 import com.chub.officemanager.data.repo.OfficeItemRepository
 import dagger.Module
 import dagger.Provides
@@ -30,7 +29,7 @@ class DataModule {
 
 
     @Provides
-    fun provideOfficeItemRepository(database: OfficeDB, mapper: OfficeItemMapper): OfficeItemRepository {
-        return OfficeItemRepository(database, mapper)
+    fun provideOfficeItemRepository(database: OfficeDB): OfficeItemRepository {
+        return OfficeItemRepository(database)
     }
 }

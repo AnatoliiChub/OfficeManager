@@ -13,8 +13,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class OfficeItemRepository @Inject constructor(
-    private val officeDB: OfficeDB,
-    private val mapper: OfficeItemMapper
+    private val officeDB: OfficeDB
 ) {
     suspend fun storeItem(item: OfficeItem) {
         var itemId = item.id
@@ -27,7 +26,7 @@ class OfficeItemRepository @Inject constructor(
         val result = officeDB.itemEntityDAO().insert(
             ItemEntity(itemId = item.id, name = item.name, description = item.description, typeId = typeId)
         )
-        if(itemId == NONE) {
+        if (itemId == NONE) {
             itemId = result
         }
         item.relations.map {
@@ -41,7 +40,7 @@ class OfficeItemRepository @Inject constructor(
 
     suspend fun getItemById(id: Long): OfficeItem {
         val itemWithRelations = officeDB.itemEntityDAO().getById(id)
-        return mapper.map(itemWithRelations)
+        return itemWithRelations.toOfficeItem()
     }
 
     suspend fun removeItem(item: OfficeItem) {
@@ -49,10 +48,6 @@ class OfficeItemRepository @Inject constructor(
     }
 
     fun search(text: String): Flow<List<OfficeItem>> {
-        return officeDB.itemEntityDAO().search(text).map { items ->
-            items.map { itemWithRelations ->
-                mapper.map(itemWithRelations)
-            }
-        }
+        return officeDB.itemEntityDAO().search(text).map { items -> items.map { it.toOfficeItem() } }
     }
 }
