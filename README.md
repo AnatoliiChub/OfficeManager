@@ -6,24 +6,26 @@
 I've implemented the app according to requirements, but there are a few points that are not clear:
 1. **Object type** - since on the screenshots it has a separated input text field, I suppose that type can be dynamic. In other words - there is no limited number of types, and users are able to create new types.
 2. I've implemented Create, Edit and Delete functionality for the objects. Also I've implemented a **Popup menu** like it was mentioned on the screenshots. But I did not add a button for the menu, the user is able to open it by **long press** on the item list.
-3. I've implemented Add and Delete functionality for the objects. The requirements mentioned "Create, Edit and Delete" functionality for relations, but I'm not sure what "Edit". Users are able to add new one or remove existing relations.
+3. I've implemented Add and Delete functionality for the objects. Users are able to add new one or remove existing relations.
 4. I've implemented a search feature to find objects by their attributes. It's working in the next way if one of the fields(name, description or type) contains the text it displays the object.
 5. All the data stored persistently in SQLite database.
 6. I did not have enough time to implement validation, so the user is able to create items with empty fields.
-7. Since there are no requirements regarding relations, the user is able to add an unlimited amount of relations but all relations inside the same object should be unique, duplication is not possible. If a user tries to save an object with a duplicated relation it will show an error. 
-8. Also it will show an error if user tries to add already used relation(which already realted to another object).
+7. Since there are no requirements regarding relations, the user is able to add an unlimited amount of relations but all relations inside the same object should be unique, duplication is not possible. If a user tries to save an object with a duplicated relation it will show an error.
+8. Also it will show an error if the user tries to add an already used relation(which is already related to another object).
 Since time was limited I just implemented a default placeholder for all the errors.
 
 ## Technologies and Architecture
 I used a modern stack of technologies: Jetpack Compose, Kotlin Coroutines, Kotlin Flow, Room and Hilt for the dependency injection.
 I prefer to use Hilt for dependency injection because it can provide compile-time safety(in comparison with Koin it's an advantage), supports Jetpack Compose and has full integration with Android. Also I have a lot of experience with Dagger 2, since Hilt is based on Dagger 2, it's also an advantage for me.
 Despite having a lot of experience with RxJava I used Kotlin coroutines and Flow because in my opinion the RxJava framework has a chance to become deprecated or not maintainable in the next few years.
+### Database
 I've used the Room to have the ability to make a database normalization. Since the type attribute is dynamic to normalize database structure I created a separate table for type since it's a string and there are no limits for the size.
 Also I've created a "Join" table and call it "Relations" you can see the database structure on the picture below:
 <div align="center">
 <img src="https://github.com/user-attachments/assets/dacae8b4-aee6-4702-bab1-1d5070660530" width="800" height="500" />
 </div>
-I've used MVVM architecture for the app. Since Vievmodel does not have any reference to View it will be easy to test it. I did not use cases as usual, because there is no business logic, only CRUD operations to the database.
+I did not encrypt the database with sqlCipher, probably it's out of scope of the testing task.
+I've used MVVM architecture for the app. Since Viewmodel does not have any reference to View it will be easy to test it. I did not use UseCases as usual, because there is no business logic, only CRUD operations to the database.
 I used a Result pattern for UiState to avoid bugs related to different sources of ui state.
 
 ## UI/UX
@@ -59,3 +61,8 @@ Looks the same as Add object screen.
 </div>
 It opens when the user wants to select a new relation.
 It looks like an Object screen. But on that screen the user is not able to manage objects(Edit, Delete). When the user presses on the list item on this screen it brings back to the previous (Add/Edit) screen and adds a new relation to the relation list.
+
+### Video Demo
+[demo.webm](https://github.com/user-attachments/assets/e6bcc3e7-3989-4d84-8266-0766c7632413)
+
+
