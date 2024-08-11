@@ -14,7 +14,7 @@
 
 ## Requirements
 
-I've implemented the app according to requirements, but there are a few points that are not clear:
+I've implemented the app according to requirements and highlighted key points below:
 1. **Object type** - since on the screenshots it has a separated input text field, I suppose that type can be dynamic. In other words - there is no limited number of types, and users are able to create new types.
 2. I've implemented Create, Edit and Delete functionality for the objects. Also I've implemented a **Popup menu** like it was mentioned on the screenshots. But I did not add a button for the menu, the user is able to open it by **long press** on the item list.
 3. I've implemented Add and Delete functionality for the objects. Users are able to add new one or remove existing relations.
