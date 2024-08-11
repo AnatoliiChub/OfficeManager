@@ -54,7 +54,7 @@ fun SearchItemsScreen(
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (val content = state.value) {
                     Result.Loading -> Loading()
-                    is Result.Error -> ErrorLayout((state.value as Result.Error).errorMessage)
+                    is Result.Error -> ErrorLayout(stringResource(id = R.string.error))
                     is Result.Success<SearchItemsUiState> -> Content(
                         filter.value,
                         content,
