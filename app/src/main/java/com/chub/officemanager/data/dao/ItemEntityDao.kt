@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ItemEntityDao {
     @Transaction
-    @Query("SELECT * FROM ItemEntity" +
-            " WHERE name LIKE '%' || :text || '%' OR description LIKE '%' || :text || '%'" +
-            " OR typeId IN (SELECT typeId FROM TypeEntity WHERE name LIKE '%' || :text || '%')")
+    @Query(
+        "SELECT * FROM ItemEntity" +
+                " WHERE name LIKE '%' || :text || '%' OR description LIKE '%' || :text || '%'" +
+                " OR typeId IN (SELECT typeId FROM TypeEntity WHERE name LIKE '%' || :text || '%')"
+    )
     fun search(text: String): Flow<List<ItemWithRelations>>
 
     @Query("SELECT * FROM ItemEntity WHERE itemId = :id")

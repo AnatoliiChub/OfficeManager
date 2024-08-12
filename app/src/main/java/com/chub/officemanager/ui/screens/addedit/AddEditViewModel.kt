@@ -86,9 +86,11 @@ class AddEditViewModel @Inject constructor(
                 officeRepo.storeItem(item)
                 onSaved()
             } catch (exception: Exception) {
+                Log.e("AddEditViewModel", "saveItem: ", exception)
                 when (exception) {
                     is ItemDuplicatedException -> temporaryState.error.value =
                         "You tried to add duplicated item or item which already related to another object"
+
                     else -> temporaryState.error.value = "Something went wrong"
                 }
             }

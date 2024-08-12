@@ -22,9 +22,13 @@ class OfficeItemRepository @Inject constructor(
     private val typeDao: TypeEntityDao
 ) {
     suspend fun storeItem(item: OfficeItem) {
+        var typeId = typeDao.getByName(item.type)?.typeId ?: NONE
         db.runInTransaction {
-            val typeId = getTypeId(item.type)
-            val itemId = if (item.id == NONE) itemDao.insert(createItemEntity(item, typeId)) else item.id
+            if (typeId == NONE) {
+                typeId = typeDao.insert(TypeEntity(name = item.type))
+            }
+            val itemId = item.id
+            itemDao.insert(createItemEntity(item, typeId))
             storeRelations(itemId, item.relations.map { RelationEntity(parentId = itemId, childId = it.id) })
         }
     }
@@ -39,14 +43,6 @@ class OfficeItemRepository @Inject constructor(
 
     fun search(text: String): Flow<List<OfficeItem>> {
         return itemDao.search(text).map { items -> items.map { it.toOfficeItem() } }
-    }
-
-    private fun getTypeId(type: String): Long {
-        return try {
-            typeDao.insert(TypeEntity(name = type))
-        } catch (exception: SQLiteConstraintException) {
-            typeDao.getByName(type)!!.typeId
-        }
     }
 
     private fun storeRelations(itemId: Long, relations: List<RelationEntity>) {
