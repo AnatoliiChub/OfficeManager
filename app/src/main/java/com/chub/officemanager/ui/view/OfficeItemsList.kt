@@ -1,6 +1,5 @@
 package com.chub.officemanager.ui.view
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +10,7 @@ import com.chub.officemanager.util.OfficeItem
 @Composable
 fun OfficeItemsList(
     list: List<OfficeItem>,
-    operations : List<ItemOperation>,
+    operations: List<ItemOperation>,
     onItemClicked: (OfficeItem) -> Unit,
     onRemoveItem: (OfficeItem) -> Unit = {}
 ) {
@@ -21,11 +20,8 @@ fun OfficeItemsList(
         verticalArrangement = Arrangement.spacedBy(verticalPadding),
         contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = verticalPadding)
     ) {
-        items(list.size) { index ->
-            OfficeItemLayout(list[index], operations, {
-                onItemClicked(it)
-                Log.d("OfficeItemsList", "Item clicked : $it")
-            }, {
+        items(list.size, key = { list[it].id }) { index ->
+            OfficeItemLayout(list[index], operations, onItemClicked) {
                 if (operations.isNotEmpty()) {
                     val item = list[index]
                     when (it) {
@@ -33,7 +29,7 @@ fun OfficeItemsList(
                         ItemOperation.Delete -> onRemoveItem(item)
                     }
                 }
-            })
+            }
         }
     }
 }
