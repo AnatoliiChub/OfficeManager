@@ -26,14 +26,6 @@ fun OfficeTopBar(
             titleContentColor = MaterialTheme.colorScheme.primary,
         ),
         title = { Text(title) },
-        actions = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = stringResource(id = R.string.menu)
-                )
-            }
-        },
         navigationIcon = {
             onNavigationClick?.let {
                 IconButton(onClick = onNavigationClick) {

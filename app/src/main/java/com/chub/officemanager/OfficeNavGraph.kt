@@ -24,20 +24,24 @@ fun OfficeNavGraph() {
         startDestination = SEARCH_OFFICE_ITEMS_ROUTE,
     ) {
         composable(SEARCH_OFFICE_ITEMS_ROUTE) {
-            SearchItemsScreen(onItemClicked = {
-                navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
-            }, onFabClick = {
-                navController.navigate("$ADD_EDIT_OFFICE_ITEM/$NONE")
-            })
+            SearchItemsScreen(
+                onItemClicked = {
+                    navController.navigate("$ADD_EDIT_OFFICE_ITEM/${it.id}")
+                }, onFabClick = {
+                    navController.navigate("$ADD_EDIT_OFFICE_ITEM/$NONE")
+                }
+            )
         }
 
         composable(SEARCH_TO_ADD_ROUTE) {
-            SearchItemsScreen(true, onItemClicked = {
-                navController.popBackStack()
-                navController.currentBackStackEntry!!.savedStateHandle[NavArgs.RELATION] = it
-            }, onBack = {
-                navController.popBackStack()
-            })
+            SearchItemsScreen(true,
+                onItemClicked = {
+                    navController.popBackStack()
+                    navController.currentBackStackEntry!!.savedStateHandle[NavArgs.RELATION] = it
+                }, onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(
@@ -46,11 +50,13 @@ fun OfficeNavGraph() {
         ) { entry ->
             val relation = entry.savedStateHandle.get<OfficeItem>(NavArgs.RELATION)
             val id = entry.arguments?.getLong(ITEM_ID) ?: NONE
-            AddEditScreen(id, relation, onAddButtonClick = {
-                navController.navigate(SEARCH_TO_ADD_ROUTE)
-            }, onBack = {
-                navController.popBackStack()
-            })
+            AddEditScreen(id, relation,
+                onAddButtonClick = {
+                    navController.navigate(SEARCH_TO_ADD_ROUTE)
+                }, onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
