@@ -30,7 +30,7 @@ import com.chub.officemanager.util.Result
 @Composable
 fun SearchItemsScreen(
     isSelectionScreen: Boolean = false,
-    onItemClicked: (OfficeItem) -> Unit,
+    onItemClick: (OfficeItem) -> Unit,
     onFabClick: () -> Unit = {},
     viewModel: SearchItemsViewModel = hiltViewModel(),
     onBack: (() -> Unit)? = null
@@ -61,7 +61,7 @@ fun SearchItemsScreen(
                         viewModel::onItemRemove,
                         viewModel::onFilterChanged,
                         areItemsOperable,
-                        onItemClicked
+                        onItemClick
                     )
                 }
             }

@@ -1,6 +1,5 @@
 package com.chub.officemanager.ui.view
 
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -9,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -39,12 +41,14 @@ fun OfficeItemLayout(
     var itemHeight by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
 
+    val shape = RoundedCornerShape(12.dp)
     Card(
         modifier = Modifier
+            .clip(shape)
             .fillMaxWidth()
             .heightIn(min = 96.dp, max = 160.dp)
-            .indication(interactionSource, LocalIndication.current)
-            .pointerInput(true) {
+            .indication(interactionSource, rememberRipple())
+            .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         isMenuVisible.value = true
@@ -63,8 +67,8 @@ fun OfficeItemLayout(
             }
             .onSizeChanged {
                 itemHeight = with(density) { it.height.toDp() }
-            }
-
+            },
+        shape = shape
     ) {
         Column(
             modifier = Modifier

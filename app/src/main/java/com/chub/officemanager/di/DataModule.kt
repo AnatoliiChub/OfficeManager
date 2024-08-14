@@ -10,14 +10,16 @@ import com.chub.officemanager.data.repo.OfficeItemRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
-@InstallIn(ViewModelComponent::class)
+@InstallIn(SingletonComponent::class)
 @Module
 class DataModule {
 
     @Provides
+    @Singleton
     fun provideDataBase(@ApplicationContext context: Context): OfficeDB {
         val db = Room.databaseBuilder(
             context,
@@ -38,10 +40,11 @@ class DataModule {
 
     @Provides
     fun provideOfficeItemRepository(
+        database: OfficeDB,
         itemEntityDao: ItemEntityDao,
         relationDao: RelationDao,
         typeEntityDao: TypeEntityDao
     ): OfficeItemRepository {
-        return OfficeItemRepository(itemEntityDao, relationDao, typeEntityDao)
+        return OfficeItemRepository(database, itemEntityDao, relationDao, typeEntityDao)
     }
 }
