@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -80,6 +81,7 @@ private fun Content(
 ) {
     Column {
         TextField(
+            shape = RectangleShape,
             modifier = Modifier.fillMaxWidth(),
             value = filter,
             onValueChange = { onFilterChanged(it) },
