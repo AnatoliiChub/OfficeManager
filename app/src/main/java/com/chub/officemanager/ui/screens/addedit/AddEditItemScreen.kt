@@ -32,15 +32,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chub.officemanager.R
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
-import com.chub.officemanager.ui.view.ErrorLayout
 import com.chub.officemanager.ui.view.InputText
 import com.chub.officemanager.ui.view.ItemOperation
 import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemLayout
 import com.chub.officemanager.ui.view.OfficeTopBar
+import com.chub.officemanager.util.ContentResult
+import com.chub.officemanager.util.ErrorMessage
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
-import com.chub.officemanager.util.Result
 import kotlinx.coroutines.launch
 
 const val DESCRIPTION_MAX_LINES = 3
@@ -53,22 +53,19 @@ fun AddEditScreen(
     viewModel: AddEditViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
-    //Default savedStateHandle from viewmodel can't handle result back case
 
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
-    val duplicatedRelationError = stringResource(id = R.string.relation_already_added)
 
+    //Default savedStateHandle from viewmodel can't handle result back case
     LaunchedEffect(selectedRelation) {
-        if (state.value is Result.Success<ItemUiState> &&
-            (state.value as Result.Success<ItemUiState>).data.relations.contains(
+        if (state.value is ContentResult.Success<ItemUiState> &&
+            (state.value as ContentResult.Success<ItemUiState>).data.relations.contains(
                 selectedRelation
             )
         ) {
-            snackBarHostState.showSnackbar(
-                duplicatedRelationError,
-                withDismissAction = true
-            )
+            //TODO probably move error to search screen
+            viewModel.setErrorMessage(ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED)
         } else {
             selectedRelation?.let {
                 viewModel.onRelationSelected(selectedRelation)
@@ -90,16 +87,22 @@ fun AddEditScreen(
         }) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (val content = state.value) {
-                    Result.Loading -> Loading()
-                    is Result.Error -> ErrorLayout(content.errorMessage)
-                    is Result.Success<ItemUiState> -> Content(
-                        content.data,
-                        viewModel::onNameChanged,
-                        viewModel::onDescriptionChanged,
-                        viewModel::onTypeChanged,
-                        onAddButtonClick,
-                        viewModel::onRemoveClick
-                    )
+                    ContentResult.Loading -> Loading()
+                    is ContentResult.Success<ItemUiState> -> {
+                        content.data.errorMessage.let {
+                            if (it != ErrorMessage.NONE) {
+                                ErrorMessage(it, snackBarHostState, viewModel)
+                            }
+                        }
+                        Content(
+                            content.data,
+                            viewModel::onNameChanged,
+                            viewModel::onDescriptionChanged,
+                            viewModel::onTypeChanged,
+                            onAddButtonClick,
+                            viewModel::onRemoveClick
+                        )
+                    }
                 }
             }
         }
@@ -107,14 +110,35 @@ fun AddEditScreen(
 }
 
 @Composable
+private fun ErrorMessage(
+    it: ErrorMessage,
+    snackBarHostState: SnackbarHostState,
+    viewModel: AddEditViewModel
+) {
+    val errorText = when (it) {
+        ErrorMessage.ITEM_IS_ALREADY_RELATED -> stringResource(id = R.string.relation_already_added)
+        ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED -> stringResource(id = R.string.relation_already_related)
+        else -> stringResource(id = R.string.error)
+
+    }
+    LaunchedEffect(it) {
+        snackBarHostState.showSnackbar(
+            errorText,
+            withDismissAction = true,
+        )
+        viewModel.setErrorMessage(ErrorMessage.NONE)
+    }
+}
+
+@Composable
 private fun Fab(
-    state: State<Result<ItemUiState>>,
+    state: State<ContentResult<ItemUiState>>,
     onSaveItem: (() -> Unit) -> Unit,
     snackBarHostState: SnackbarHostState,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val savedLabel = stringResource(id = R.string.object_was_saved)
-    if (state.value is Result.Success<ItemUiState>) {
+    if (state.value is ContentResult.Success<ItemUiState>) {
         FloatingActionButton(
             onClick = {
                 onSaveItem {

@@ -25,7 +25,8 @@ class SearchItemsViewModel @Inject constructor(private val officeRepo: OfficeIte
     val filter = MutableStateFlow("")
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<Result<SearchItemsUiState>> = filter.debounce(350L).flatMapLatest { officeRepo.search(it) }
+    val uiState: StateFlow<Result<SearchItemsUiState>> = filter.debounce(350L)
+        .flatMapLatest { officeRepo.search(it) }
         .map { Result.Success(SearchItemsUiState(it)) }.flowOn(Dispatchers.IO)
         .stateIn(
             scope = viewModelScope,

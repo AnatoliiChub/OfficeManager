@@ -1,5 +1,6 @@
 package com.chub.officemanager.ui.screens.addedit
 
+import com.chub.officemanager.util.ErrorMessage
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +12,7 @@ class TemporaryItemState(
     val description: MutableStateFlow<String> = MutableStateFlow(""),
     val type: MutableStateFlow<String> = MutableStateFlow(""),
     val relations: MutableStateFlow<MutableList<OfficeItem>> = MutableStateFlow(mutableListOf()),
-    val error : MutableStateFlow<String> = MutableStateFlow("")
+    val error : MutableStateFlow<ErrorMessage> = MutableStateFlow(ErrorMessage.NONE)
 ) {
     fun update(item: OfficeItem) {
         name.value = item.name

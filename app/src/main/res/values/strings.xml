@@ -16,5 +16,6 @@
     <string name="type">"Type: "</string>
     <string name="error">Something went wrong</string>
     <string name="object_was_saved">The object was saved.</string>
-    <string name="relation_already_added">Relation is already in the list.</string>
+    <string name="relation_already_related">Impossible to add a relation. It&quot;s is already related to another object.</string>
+    <string name="relation_already_added">Relation is already added. You&quot;re trying to add the same relation twice.</string>
 </resources>

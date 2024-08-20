@@ -8,7 +8,7 @@ import com.chub.officemanager.data.dao.TypeEntityDao
 import com.chub.officemanager.data.entity.ItemEntity
 import com.chub.officemanager.data.entity.RelationEntity
 import com.chub.officemanager.data.entity.TypeEntity
-import com.chub.officemanager.exceptioin.ItemDuplicatedException
+import com.chub.officemanager.exceptioin.ItemIsAlreadyRelatedException
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import kotlinx.coroutines.flow.Flow
@@ -50,7 +50,7 @@ class OfficeItemRepository @Inject constructor(
         try {
             relationDao.insertAll(relations)
         } catch (exception: SQLiteConstraintException) {
-            throw ItemDuplicatedException()
+            throw ItemIsAlreadyRelatedException()
         }
     }
 

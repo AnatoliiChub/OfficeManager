@@ -1,15 +1,15 @@
 package com.chub.officemanager.ui.screens.addedit
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chub.officemanager.NavArgs
 import com.chub.officemanager.data.repo.OfficeItemRepository
-import com.chub.officemanager.exceptioin.ItemDuplicatedException
+import com.chub.officemanager.exceptioin.ItemIsAlreadyRelatedException
+import com.chub.officemanager.util.ContentResult
+import com.chub.officemanager.util.ErrorMessage
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
-import com.chub.officemanager.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,7 +37,7 @@ class AddEditViewModel @Inject constructor(
         }
     }
 
-    val uiState: StateFlow<Result<ItemUiState>> =
+    val uiState: StateFlow<ContentResult<ItemUiState>> =
         combine(
             temporaryState.name,
             temporaryState.description,
@@ -45,22 +45,19 @@ class AddEditViewModel @Inject constructor(
             temporaryState.relations,
             temporaryState.error
         ) { name, description, type, relations, error ->
-            if (error.isNotBlank()) {
-                Result.Error(error)
-            } else {
-                Result.Success(
-                    ItemUiState(
-                        name = name,
-                        description = description,
-                        type = type,
-                        relations = relations
-                    )
+            ContentResult.Success(
+                ItemUiState(
+                    name = name,
+                    description = description,
+                    type = type,
+                    relations = relations,
+                    errorMessage = error
                 )
-            }
+            )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(500L),
-            initialValue = Result.Loading
+            initialValue = ContentResult.Loading
         )
 
     fun onNameChanged(name: String) {
@@ -79,6 +76,10 @@ class AddEditViewModel @Inject constructor(
         temporaryState.removeRelation(officeItem)
     }
 
+    fun setErrorMessage(message: ErrorMessage) {
+        temporaryState.error.value = message
+    }
+
     fun saveItem(onSaved: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -86,12 +87,11 @@ class AddEditViewModel @Inject constructor(
                 officeRepo.storeItem(item)
                 onSaved()
             } catch (exception: Exception) {
-                Log.e("AddEditViewModel", "saveItem: ", exception)
                 when (exception) {
-                    is ItemDuplicatedException -> temporaryState.error.value =
-                        "You tried to add duplicated item or item which already related to another object"
+                    is ItemIsAlreadyRelatedException -> temporaryState.error.value =
+                        ErrorMessage.ITEM_IS_ALREADY_RELATED
 
-                    else -> temporaryState.error.value = "Something went wrong"
+                    else -> temporaryState.error.value = ErrorMessage.UNKNOWN_ERROR
                 }
             }
         }

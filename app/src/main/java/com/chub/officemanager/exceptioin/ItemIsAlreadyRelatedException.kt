@@ -1,6 +1,6 @@
 package com.chub.officemanager.exceptioin
 
-class ItemDuplicatedException : Exception() {
+class ItemIsAlreadyRelatedException : Exception() {
     override val message: String
         get() = "item duplicated"
 }
