@@ -116,8 +116,8 @@ private fun ErrorMessage(
     onShown: () -> Unit
 ) {
     val errorText = when (it) {
-        ErrorMessage.ITEM_IS_ALREADY_RELATED -> stringResource(id = R.string.relation_already_added)
-        ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED -> stringResource(id = R.string.relation_already_related)
+        ErrorMessage.ITEM_IS_ALREADY_RELATED -> stringResource(id = R.string.relation_already_related)
+        ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED -> stringResource(id = R.string.relation_already_added)
         else -> stringResource(id = R.string.error)
 
     }
@@ -136,6 +136,7 @@ private fun Fab(
     onSaveItem: (() -> Unit) -> Unit,
     snackBarHostState: SnackbarHostState,
 ) {
+
     val coroutineScope = rememberCoroutineScope()
     val savedLabel = stringResource(id = R.string.object_was_saved)
     if (state.value is ContentResult.Success<ItemUiState>) {
