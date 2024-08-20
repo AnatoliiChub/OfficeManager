@@ -89,11 +89,6 @@ fun AddEditScreen(
                 when (val content = state.value) {
                     ContentResult.Loading -> Loading()
                     is ContentResult.Success<ItemUiState> -> {
-                        content.data.errorMessage.let {
-                            if (it != ErrorMessage.NONE) {
-                                ErrorMessage(it, snackBarHostState, viewModel)
-                            }
-                        }
                         Content(
                             content.data,
                             viewModel::onNameChanged,
@@ -102,6 +97,11 @@ fun AddEditScreen(
                             onAddButtonClick,
                             viewModel::onRemoveClick
                         )
+                        content.data.errorMessage.let {
+                            if (it != ErrorMessage.NONE) {
+                                ErrorMessage(it, snackBarHostState) { viewModel.setErrorMessage(ErrorMessage.NONE) }
+                            }
+                        }
                     }
                 }
             }
@@ -113,7 +113,7 @@ fun AddEditScreen(
 private fun ErrorMessage(
     it: ErrorMessage,
     snackBarHostState: SnackbarHostState,
-    viewModel: AddEditViewModel
+    onShown: () -> Unit
 ) {
     val errorText = when (it) {
         ErrorMessage.ITEM_IS_ALREADY_RELATED -> stringResource(id = R.string.relation_already_added)
@@ -126,7 +126,7 @@ private fun ErrorMessage(
             errorText,
             withDismissAction = true,
         )
-        viewModel.setErrorMessage(ErrorMessage.NONE)
+        onShown()
     }
 }
 
