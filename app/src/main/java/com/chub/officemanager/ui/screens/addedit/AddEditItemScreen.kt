@@ -41,7 +41,6 @@ import com.chub.officemanager.ui.view.OfficeTopBar
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import com.chub.officemanager.util.Result
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 const val DESCRIPTION_MAX_LINES = 3
@@ -55,25 +54,37 @@ fun AddEditScreen(
     onBack: () -> Unit
 ) {
     //Default savedStateHandle from viewmodel can't handle result back case
+
+    val state = viewModel.uiState.collectAsStateWithLifecycle()
+    val snackBarHostState = remember { SnackbarHostState() }
+    val duplicatedRelationError = stringResource(id = R.string.relation_already_added)
+
     LaunchedEffect(selectedRelation) {
-        selectedRelation?.let {
-            viewModel.onRelationSelected(selectedRelation)
+        if (state.value is Result.Success<ItemUiState> &&
+            (state.value as Result.Success<ItemUiState>).data.relations.contains(
+                selectedRelation
+            )
+        ) {
+            snackBarHostState.showSnackbar(
+                duplicatedRelationError,
+                withDismissAction = true
+            )
+        } else {
+            selectedRelation?.let {
+                viewModel.onRelationSelected(selectedRelation)
+            }
         }
     }
 
-    val isCreatingNewItem = itemId == NONE
-    val title = if (isCreatingNewItem) stringResource(id = R.string.title_add_items)
-    else stringResource(id = R.string.title_edit_items)
-    val savedLabel = stringResource(id = R.string.object_was_saved)
-    val state = viewModel.uiState.collectAsStateWithLifecycle()
-    val snackBarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-
     OfficeManagerTheme {
         Scaffold(topBar = {
-            OfficeTopBar(title, onNavigationClick = onBack)
+            OfficeTopBar(
+                if (itemId == NONE) stringResource(id = R.string.title_add_items)
+                else stringResource(id = R.string.title_edit_items),
+                onNavigationClick = onBack
+            )
         }, floatingActionButton = {
-            Fab(state, viewModel::saveItem, coroutineScope, snackBarHostState, savedLabel)
+            Fab(state, viewModel::saveItem, snackBarHostState)
         }, snackbarHost = {
             SnackbarHost(hostState = snackBarHostState)
         }) { innerPadding ->
@@ -99,10 +110,10 @@ fun AddEditScreen(
 private fun Fab(
     state: State<Result<ItemUiState>>,
     onSaveItem: (() -> Unit) -> Unit,
-    coroutineScope: CoroutineScope,
     snackBarHostState: SnackbarHostState,
-    savedLabel: String
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val savedLabel = stringResource(id = R.string.object_was_saved)
     if (state.value is Result.Success<ItemUiState>) {
         FloatingActionButton(
             onClick = {
@@ -127,23 +138,33 @@ private fun BoxScope.Content(
     onAddButtonClick: () -> Unit,
     onRemoveAction: (OfficeItem) -> Unit,
 ) {
+    val relationsLabel = stringResource(R.string.relations)
+
     val fields = mutableListOf<Any>(
         InputField(FieldType.NAME, state.name),
         InputField(FieldType.DESCRIPTION, state.description),
         InputField(FieldType.TYPE, state.type),
-    )
-    fields.add(Label(stringResource(R.string.relations)))
-    state.relations.forEach {
-        fields.add(it)
+    ).apply {
+        add(Label(relationsLabel))
+        state.relations.forEach {
+            add(it)
+        }
+        add(AddNewRelation)
     }
-    fields.add(AddNewRelation)
-    val verticalPadding = 16.dp
-    val horizontalPadding = 8.dp
+
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(verticalPadding),
-        contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = verticalPadding)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp)
     ) {
-        items(fields.size) { index ->
+        items(fields.size, key = {
+            when (val item = fields[it]) {
+                is InputField -> item.type
+                is Label -> item.text
+                is OfficeItem -> item.id
+                else -> item.javaClass.name
+            }
+        }
+        ) { index ->
             when (val listItem = fields[index]) {
                 is InputField -> {
                     when (listItem.type) {
