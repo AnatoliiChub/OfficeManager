@@ -36,13 +36,18 @@ fun SearchItemsScreen(
     viewModel: SearchItemsViewModel = hiltViewModel(),
     onBack: (() -> Unit)? = null
 ) {
-    val areItemsOperable = !isSelectionScreen
     val filter = viewModel.filter.collectAsStateWithLifecycle()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
-    val titleId = if (isSelectionScreen) R.string.title_search_items_to_add else R.string.title_search_objects
+
     OfficeManagerTheme {
         Scaffold(topBar = {
-            OfficeTopBar(stringResource(id = titleId), onNavigationClick = onBack)
+            OfficeTopBar(
+                stringResource(
+                    id = if (isSelectionScreen) R.string.title_search_items_to_add
+                    else R.string.title_search_objects
+                ),
+                onNavigationClick = onBack
+            )
         }, floatingActionButton = {
             if (!isSelectionScreen) {
                 FloatingActionButton(
@@ -54,14 +59,14 @@ fun SearchItemsScreen(
         }) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (val content = state.value) {
-                    Result.Loading-> Loading()
+                    Result.Loading -> Loading()
                     is Result.Error -> ErrorLayout(stringResource(id = R.string.error))
                     is Result.Success<SearchItemsUiState> -> Content(
                         filter.value,
                         content,
                         viewModel::onItemRemove,
                         viewModel::onFilterChanged,
-                        areItemsOperable,
+                        !isSelectionScreen,
                         onItemClick
                     )
                 }

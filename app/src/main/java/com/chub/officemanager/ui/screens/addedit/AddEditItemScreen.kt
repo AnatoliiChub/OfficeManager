@@ -57,21 +57,9 @@ fun AddEditScreen(
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    //Default savedStateHandle from viewmodel can't handle result back case
-    LaunchedEffect(selectedRelation) {
-        if (state.value is ContentResult.Success<ItemUiState> &&
-            (state.value as ContentResult.Success<ItemUiState>).data.relations.contains(
-                selectedRelation
-            )
-        ) {
-            //TODO probably move error to search screen
-            viewModel.setErrorMessage(ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED)
-        } else {
-            selectedRelation?.let {
-                viewModel.onRelationSelected(selectedRelation)
-            }
-        }
-    }
+    //Default savedStateHandle from viewmodel can't handle result back case,
+    //so we need to handle it manually
+    LaunchStateHandle(selectedRelation, state, viewModel)
 
     OfficeManagerTheme {
         Scaffold(topBar = {
@@ -81,7 +69,9 @@ fun AddEditScreen(
                 onNavigationClick = onBack
             )
         }, floatingActionButton = {
-            Fab(state, viewModel::saveItem, snackBarHostState)
+            if (state.value is ContentResult.Success<ItemUiState>) {
+                Fab(viewModel::saveItem, snackBarHostState)
+            }
         }, snackbarHost = {
             SnackbarHost(hostState = snackBarHostState)
         }) { innerPadding ->
@@ -110,6 +100,28 @@ fun AddEditScreen(
 }
 
 @Composable
+private fun LaunchStateHandle(
+    selectedRelation: OfficeItem?,
+    state: State<ContentResult<ItemUiState>>,
+    viewModel: AddEditViewModel
+) {
+    LaunchedEffect(selectedRelation) {
+        if (state.value is ContentResult.Success<ItemUiState> &&
+            (state.value as ContentResult.Success<ItemUiState>).data.relations.contains(
+                selectedRelation
+            )
+        ) {
+            //TODO probably move error to search screen
+            viewModel.setErrorMessage(ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED)
+        } else {
+            selectedRelation?.let {
+                viewModel.onRelationSelected(selectedRelation)
+            }
+        }
+    }
+}
+
+@Composable
 private fun ErrorMessage(
     it: ErrorMessage,
     snackBarHostState: SnackbarHostState,
@@ -132,26 +144,25 @@ private fun ErrorMessage(
 
 @Composable
 private fun Fab(
-    state: State<ContentResult<ItemUiState>>,
     onSaveItem: (() -> Unit) -> Unit,
     snackBarHostState: SnackbarHostState,
 ) {
 
     val coroutineScope = rememberCoroutineScope()
     val savedLabel = stringResource(id = R.string.object_was_saved)
-    if (state.value is ContentResult.Success<ItemUiState>) {
-        FloatingActionButton(
-            onClick = {
-                onSaveItem {
-                    coroutineScope.launch {
-                        snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
-                    }
+
+    FloatingActionButton(
+        onClick = {
+            onSaveItem {
+                coroutineScope.launch {
+                    snackBarHostState.showSnackbar(savedLabel, withDismissAction = true)
                 }
-            },
-        ) {
-            Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
-        }
+            }
+        },
+    ) {
+        Icon(Icons.Filled.Done, stringResource(id = R.string.done_action))
     }
+
 }
 
 @Composable
