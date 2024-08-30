@@ -23,14 +23,13 @@ import javax.inject.Inject
 class AddEditViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val officeRepo: OfficeItemRepository
-) :
-    ViewModel() {
+) : ViewModel() {
 
     private val temporaryState = TemporaryItemState()
 
     init {
         with(temporaryState) {
-            currentItemId.value = savedStateHandle.get<Long>(NavArgs.ITEM_ID) ?: NONE
+            currentItemId(savedStateHandle.get<Long>(NavArgs.ITEM_ID) ?: NONE)
             if (currentItemId.value != NONE) {
                 fetchItem()
             }
@@ -60,24 +59,19 @@ class AddEditViewModel @Inject constructor(
             initialValue = ContentResult.Loading
         )
 
-    fun onNameChanged(name: String) {
-        temporaryState.name.value = name
-    }
+    fun onAction(action: AddEditScreenAction.StateAction) {
+        when (action) {
+            is AddEditScreenAction.StateAction.FieldChanged -> {
+                when (action.type) {
+                    FieldType.NAME -> temporaryState.name(action.value)
+                    FieldType.DESCRIPTION -> temporaryState.description(action.value)
+                    FieldType.TYPE -> temporaryState.type(action.value)
+                }
+            }
 
-    fun onDescriptionChanged(description: String) {
-        temporaryState.description.value = description
-    }
+            is AddEditScreenAction.StateAction.RemoveItem -> temporaryState.removeRelation(action.item)
 
-    fun onTypeChanged(type: String) {
-        temporaryState.type.value = type
-    }
-
-    fun onRemoveClick(officeItem: OfficeItem) {
-        temporaryState.removeRelation(officeItem)
-    }
-
-    fun setErrorMessage(message: ErrorMessage) {
-        temporaryState.error.value = message
+        }
     }
 
     fun saveItem(onSaved: () -> Unit) {
@@ -88,17 +82,24 @@ class AddEditViewModel @Inject constructor(
                 onSaved()
             } catch (exception: Exception) {
                 when (exception) {
-                    is ItemIsAlreadyRelatedException -> temporaryState.error.value =
-                        ErrorMessage.ITEM_IS_ALREADY_RELATED
-
-                    else -> temporaryState.error.value = ErrorMessage.UNKNOWN_ERROR
+                    is ItemIsAlreadyRelatedException -> temporaryState.error(ErrorMessage.ITEM_IS_ALREADY_RELATED)
+                    else -> temporaryState.error(ErrorMessage.UNKNOWN_ERROR)
                 }
             }
         }
     }
 
-    fun onRelationSelected(selectedRelation: OfficeItem) {
-        temporaryState.addRelations(selectedRelation)
+    fun setErrorMessage(message: ErrorMessage) {
+        temporaryState.error(message)
+    }
+
+    fun onSelectedRelationToAdd(selectedRelation: OfficeItem?) {
+        if (temporaryState.relations.value.contains(selectedRelation)) {
+            //TODO probably move error to search screen
+            temporaryState.error(ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED)
+        } else {
+            selectedRelation?.let { temporaryState.addRelations(it) }
+        }
     }
 
     private fun fetchItem() {

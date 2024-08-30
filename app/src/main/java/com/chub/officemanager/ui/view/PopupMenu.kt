@@ -9,20 +9,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import com.chub.officemanager.R
-
-enum class ItemOperation {
-    Edit,
-    Delete
-}
+import com.chub.officemanager.ui.ItemOperation
+import com.chub.officemanager.ui.OperationType
+import com.chub.officemanager.util.OfficeItem
 
 @Composable
 fun PopupMenu(
     isMenuVisible: MutableState<Boolean>,
     pressOffset: DpOffset,
     itemHeight: Dp,
-    dropdownItems: List<ItemOperation>,
-    onActionClick: (ItemOperation) -> Unit
-) {
+    officeItem: OfficeItem,
+    dropdownItems: List<ItemOperation>) {
     DropdownMenu(
         expanded = isMenuVisible.value,
         onDismissRequest = {
@@ -35,14 +32,14 @@ fun PopupMenu(
         dropdownItems.forEach {
             DropdownMenuItem(
                 text = @Composable {
-                    val text = when (it) {
-                        ItemOperation.Edit -> stringResource(id = R.string.edit_action)
-                        ItemOperation.Delete -> stringResource(id = R.string.delete_action)
+                    val text = when (it.operationType) {
+                        OperationType.Edit -> stringResource(id = R.string.edit_action)
+                        OperationType.Delete -> stringResource(id = R.string.delete_action)
                     }
                     Text(text)
                 },
                 onClick = {
-                    onActionClick(it)
+                    it.callback(officeItem)
                     isMenuVisible.value = false
                 },
             )

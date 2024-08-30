@@ -4,21 +4,29 @@ import com.chub.officemanager.util.ErrorMessage
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-class TemporaryItemState(
-    val currentItemId: MutableStateFlow<Long> = MutableStateFlow(NONE),
-    val name: MutableStateFlow<String> = MutableStateFlow(""),
-    val description: MutableStateFlow<String> = MutableStateFlow(""),
-    val type: MutableStateFlow<String> = MutableStateFlow(""),
-    val relations: MutableStateFlow<MutableList<OfficeItem>> = MutableStateFlow(mutableListOf()),
-    val error : MutableStateFlow<ErrorMessage> = MutableStateFlow(ErrorMessage.NONE)
-) {
+class TemporaryItemState {
+    private val _currentItemId: MutableStateFlow<Long> = MutableStateFlow(NONE)
+    private val _name: MutableStateFlow<String> = MutableStateFlow("")
+    private val _description: MutableStateFlow<String> = MutableStateFlow("")
+    private val _type: MutableStateFlow<String> = MutableStateFlow("")
+    private val _relations: MutableStateFlow<MutableList<OfficeItem>> = MutableStateFlow(mutableListOf())
+    private val _error : MutableStateFlow<ErrorMessage> = MutableStateFlow(ErrorMessage.NONE)
+
+    val currentItemId: StateFlow<Long> = _currentItemId
+    val name: StateFlow<String> = _name
+    val description: StateFlow<String> = _description
+    val type: StateFlow<String> = _type
+    val relations: StateFlow<List<OfficeItem>> = _relations
+    val error: StateFlow<ErrorMessage> = _error
+
     fun update(item: OfficeItem) {
-        name.value = item.name
-        description.value = item.description
-        type.value = item.type
-        relations.value = item.relations.toMutableList()
+        _name.value = item.name
+        _description.value = item.description
+        _type.value = item.type
+        _relations.value = item.relations.toMutableList()
     }
 
     fun toOfficeItem(): OfficeItem {
@@ -32,14 +40,34 @@ class TemporaryItemState(
     }
 
     fun addRelations(officeItem: OfficeItem) {
-        relations.update {
+        _relations.update {
             relations.value.toMutableList().apply { add(officeItem) }
         }
     }
 
     fun removeRelation(officeItem: OfficeItem) {
-        relations.update {
+        _relations.update {
             relations.value.toMutableList().apply { remove(officeItem) }
         }
+    }
+
+    fun currentItemId(currentItemId: Long) {
+        this._currentItemId.value = currentItemId
+    }
+
+    fun name(name: String) {
+        this._name.value = name
+    }
+
+    fun description(description: String) {
+        this._description.value = description
+    }
+
+    fun type(type: String) {
+        this._type.value = type
+    }
+
+    fun error(message: ErrorMessage) {
+        this._error.value = message
     }
 }

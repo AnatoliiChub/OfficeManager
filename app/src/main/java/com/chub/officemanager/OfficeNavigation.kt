@@ -13,7 +13,9 @@ import com.chub.officemanager.OfficeScreens.ADD_EDIT_OFFICE_ITEM
 import com.chub.officemanager.OfficeScreens.OFFICE_ITEMS_LIST
 import com.chub.officemanager.OfficeScreens.SEARCH_OFFICE_ITEMS_TO_ADD
 import com.chub.officemanager.ui.screens.addedit.AddEditScreen
+import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction
 import com.chub.officemanager.ui.screens.search.SearchItemsScreen
+import com.chub.officemanager.ui.screens.search.SearchItemsScreenAction
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 
@@ -37,18 +39,29 @@ object OfficeDestinations {
 fun NavGraphBuilder.searchOfficeItemsRoute(onItemClick: (OfficeItem) -> Unit, onFabClick: () -> Unit) {
     composable(SEARCH_OFFICE_ITEMS_ROUTE) {
         SearchItemsScreen(
-            onItemClick = onItemClick,
-            onFabClick = onFabClick
+            onNavigation = {
+                when (it) {
+                    is SearchItemsScreenAction.Navigation.ItemClicked -> onItemClick(it.item)
+                    is SearchItemsScreenAction.Navigation.AddItem -> onFabClick()
+                    else -> {}
+                }
+            }
         )
     }
 }
+
 
 fun NavGraphBuilder.searchToAddRoute(onItemClick: (OfficeItem) -> Unit, onBack: () -> Unit) {
     composable(SEARCH_TO_ADD_ROUTE) {
         SearchItemsScreen(
             true,
-            onItemClick = onItemClick,
-            onBack = onBack
+            onNavigation = {
+                when (it) {
+                    is SearchItemsScreenAction.Navigation.ItemClicked -> onItemClick(it.item)
+                    is SearchItemsScreenAction.Navigation.GoBack -> onBack()
+                    else -> {}
+                }
+            }
         )
     }
 }
@@ -62,8 +75,12 @@ fun NavGraphBuilder.addEditOfficeItemRoute(onAddButtonClick: () -> Unit, onBack:
         val id = entry.arguments?.getLong(ITEM_ID) ?: NONE
         AddEditScreen(
             id, relation,
-            onAddButtonClick = onAddButtonClick,
-            onBack = onBack
+            onNavigation = {
+                when (it) {
+                    is AddEditScreenAction.NavigationAction.NavigateToAddItem -> onAddButtonClick()
+                    AddEditScreenAction.NavigationAction.NavigateBack -> onBack()
+                }
+            }
         )
     }
 }

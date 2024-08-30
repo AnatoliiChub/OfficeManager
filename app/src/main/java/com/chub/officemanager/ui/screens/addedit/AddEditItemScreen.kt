@@ -21,7 +21,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -31,9 +30,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chub.officemanager.R
+import com.chub.officemanager.ui.ItemOperation
+import com.chub.officemanager.ui.OperationType
+import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction.NavigationAction
+import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction.NavigationAction.NavigateBack
+import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction.NavigationAction.NavigateToAddItem
+import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction.StateAction
+import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction.StateAction.FieldChanged
+import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction.StateAction.RemoveItem
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
 import com.chub.officemanager.ui.view.InputText
-import com.chub.officemanager.ui.view.ItemOperation
 import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemLayout
 import com.chub.officemanager.ui.view.OfficeTopBar
@@ -45,13 +51,20 @@ import kotlinx.coroutines.launch
 
 const val DESCRIPTION_MAX_LINES = 3
 
+enum class FieldType {
+    NAME, DESCRIPTION, TYPE
+}
+
+private data class InputField(val type: FieldType, val value: String)
+private data class Label(val text: String)
+private data object AddNewRelation
+
 @Composable
 fun AddEditScreen(
     itemId: Long,
     selectedRelation: OfficeItem?,
-    onAddButtonClick: () -> Unit,
-    viewModel: AddEditViewModel = hiltViewModel(),
-    onBack: () -> Unit
+    onNavigation: (NavigationAction) -> Unit,
+    viewModel: AddEditViewModel = hiltViewModel()
 ) {
 
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,14 +72,16 @@ fun AddEditScreen(
 
     //Default savedStateHandle from viewmodel can't handle result back case,
     //so we need to handle it manually
-    LaunchStateHandle(selectedRelation, state, viewModel)
+    LaunchedEffect(selectedRelation) {
+        viewModel.onSelectedRelationToAdd(selectedRelation)
+    }
 
     OfficeManagerTheme {
         Scaffold(topBar = {
             OfficeTopBar(
                 if (itemId == NONE) stringResource(id = R.string.title_add_items)
                 else stringResource(id = R.string.title_edit_items),
-                onNavigationClick = onBack
+                onNavigationClick = { onNavigation(NavigateBack) }
             )
         }, floatingActionButton = {
             if (state.value is ContentResult.Success<ItemUiState>) {
@@ -79,14 +94,12 @@ fun AddEditScreen(
                 when (val content = state.value) {
                     ContentResult.Loading -> Loading()
                     is ContentResult.Success<ItemUiState> -> {
-                        Content(
-                            content.data,
-                            viewModel::onNameChanged,
-                            viewModel::onDescriptionChanged,
-                            viewModel::onTypeChanged,
-                            onAddButtonClick,
-                            viewModel::onRemoveClick
-                        )
+                        Content(content.data) {
+                            when (it) {
+                                is StateAction -> viewModel.onAction(it)
+                                is NavigationAction -> onNavigation(it)
+                            }
+                        }
                         content.data.errorMessage.let {
                             if (it != ErrorMessage.NONE) {
                                 ErrorMessage(it, snackBarHostState) { viewModel.setErrorMessage(ErrorMessage.NONE) }
@@ -94,28 +107,6 @@ fun AddEditScreen(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LaunchStateHandle(
-    selectedRelation: OfficeItem?,
-    state: State<ContentResult<ItemUiState>>,
-    viewModel: AddEditViewModel
-) {
-    LaunchedEffect(selectedRelation) {
-        if (state.value is ContentResult.Success<ItemUiState> &&
-            (state.value as ContentResult.Success<ItemUiState>).data.relations.contains(
-                selectedRelation
-            )
-        ) {
-            //TODO probably move error to search screen
-            viewModel.setErrorMessage(ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED)
-        } else {
-            selectedRelation?.let {
-                viewModel.onRelationSelected(selectedRelation)
             }
         }
     }
@@ -168,20 +159,14 @@ private fun Fab(
 @Composable
 private fun BoxScope.Content(
     state: ItemUiState,
-    onNameChanged: (String) -> Unit,
-    onDescriptionChanged: (String) -> Unit,
-    onTypeChanged: (String) -> Unit,
-    onAddButtonClick: () -> Unit,
-    onRemoveAction: (OfficeItem) -> Unit,
+    onAction: (AddEditScreenAction) -> Unit
 ) {
-    val relationsLabel = stringResource(R.string.relations)
-
     val fields = mutableListOf<Any>(
         InputField(FieldType.NAME, state.name),
         InputField(FieldType.DESCRIPTION, state.description),
         InputField(FieldType.TYPE, state.type),
     ).apply {
-        add(Label(relationsLabel))
+        add(Label(stringResource(R.string.relations)))
         state.relations.forEach {
             add(it)
         }
@@ -202,34 +187,47 @@ private fun BoxScope.Content(
         }
         ) { index ->
             when (val listItem = fields[index]) {
-                is InputField -> {
-                    when (listItem.type) {
-                        FieldType.NAME -> InputText(state.name, onNameChanged, R.string.name)
-                        FieldType.DESCRIPTION -> {
-                            InputText(
-                                state.description, onDescriptionChanged, R.string.description, DESCRIPTION_MAX_LINES
-                            )
-                        }
-
-                        FieldType.TYPE -> InputText(state.type, onTypeChanged, R.string.type)
-                    }
-                }
-
+                is InputField -> InputFieldLayout(listItem, state, onAction)
                 is Label -> RelationsLabel(listItem)
                 is OfficeItem -> {
                     OfficeItemLayout(item = listItem,
-                        listOf(ItemOperation.Delete),
-                        onClick = {},
-                        onActionClick = {
-                            if (it == ItemOperation.Delete) {
-                                onRemoveAction(listItem)
-                            }
-                        })
+                        listOf(ItemOperation(OperationType.Delete) { onAction(RemoveItem(listItem)) }),
+                        onClick = {})
                 }
 
-                is AddNewRelation -> AddNewRelationButton(onAddButtonClick)
+                is AddNewRelation -> AddNewRelationButton { onAction(NavigateToAddItem) }
             }
         }
+    }
+}
+
+@Composable
+private fun InputFieldLayout(
+    listItem: InputField,
+    state: ItemUiState,
+    onAction: (AddEditScreenAction) -> Unit
+) {
+    when (listItem.type) {
+        FieldType.NAME -> InputText(
+            state.name,
+            { onAction(FieldChanged(FieldType.NAME, it)) },
+            R.string.name
+        )
+
+        FieldType.DESCRIPTION -> {
+            InputText(
+                state.description,
+                { onAction(FieldChanged(FieldType.DESCRIPTION, it)) },
+                R.string.description,
+                DESCRIPTION_MAX_LINES
+            )
+        }
+
+        FieldType.TYPE -> InputText(
+            state.type,
+            { onAction(FieldChanged(FieldType.TYPE, it)) },
+            R.string.type
+        )
     }
 }
 
@@ -263,10 +261,3 @@ private fun BoxScope.AddNewRelationButton(onAddButtonClick: () -> Unit) {
     }
 }
 
-private enum class FieldType {
-    NAME, DESCRIPTION, TYPE
-}
-
-private data class InputField(val type: FieldType, val value: String)
-private data class Label(val text: String)
-private data object AddNewRelation

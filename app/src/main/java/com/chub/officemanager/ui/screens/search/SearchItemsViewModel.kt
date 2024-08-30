@@ -8,13 +8,14 @@ import com.chub.officemanager.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,30 +23,38 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchItemsViewModel @Inject constructor(private val officeRepo: OfficeItemRepository) : ViewModel() {
 
-    val filter = MutableStateFlow("")
+    private val filter = MutableStateFlow("")
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<Result<SearchItemsUiState>> = filter.debounce(350L)
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    val uiState: StateFlow<Result<SearchItemsUiState>> = combine(filter, filter.debounce(350L)
         .flatMapLatest { officeRepo.search(it) }
-        .map { Result.Success(SearchItemsUiState(it)) }.flowOn(Dispatchers.IO)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(500L),
-            initialValue = Result.Loading
-        )
+    ) { filter, items ->
+        Result.Success(SearchItemsUiState(filter, items))
+    }.flowOn(Dispatchers.IO).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(500L),
+        initialValue = Result.Loading
+    )
 
-    fun onFilterChanged(filter: String) {
+    fun onAction(action: SearchItemsScreenAction.StateAction) {
+        when (action) {
+            is SearchItemsScreenAction.StateAction.FilterChanged -> onFilterChanged(action.filter)
+            is SearchItemsScreenAction.StateAction.ItemRemove -> onItemRemove(action.item)
+        }
+    }
+
+    private fun onFilterChanged(filter: String) {
         this.filter.value = filter
     }
 
-    fun onItemRemove(officeItem: OfficeItem) {
+    private fun onItemRemove(officeItem: OfficeItem) {
         viewModelScope.launch(Dispatchers.IO) {
             officeRepo.removeItem(officeItem)
         }
     }
 }
 
-
 data class SearchItemsUiState(
+    val filter: String,
     val items: List<OfficeItem> = emptyList()
 )

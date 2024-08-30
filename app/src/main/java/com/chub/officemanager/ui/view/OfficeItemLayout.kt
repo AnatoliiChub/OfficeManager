@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.chub.officemanager.ui.ItemOperation
 import com.chub.officemanager.util.OfficeItem
 
 @Composable
@@ -33,7 +34,6 @@ fun OfficeItemLayout(
     item: OfficeItem,
     operations: List<ItemOperation>,
     onClick: (OfficeItem) -> Unit,
-    onActionClick: (ItemOperation) -> Unit
 ) {
     val isMenuVisible = rememberSaveable { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -83,8 +83,8 @@ fun OfficeItemLayout(
                 isMenuVisible,
                 pressOffset,
                 itemHeight,
+                item,
                 operations,
-                onActionClick
             )
         }
 

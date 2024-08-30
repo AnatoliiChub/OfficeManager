@@ -19,39 +19,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chub.officemanager.R
+import com.chub.officemanager.ui.OperationType
 import com.chub.officemanager.ui.theme.OfficeManagerTheme
 import com.chub.officemanager.ui.view.ErrorLayout
-import com.chub.officemanager.ui.view.ItemOperation
+import com.chub.officemanager.ui.ItemOperation
 import com.chub.officemanager.ui.view.Loading
 import com.chub.officemanager.ui.view.OfficeItemsList
 import com.chub.officemanager.ui.view.OfficeTopBar
-import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.Result
 
 @Composable
 fun SearchItemsScreen(
     isSelectionScreen: Boolean = false,
-    onItemClick: (OfficeItem) -> Unit,
-    onFabClick: () -> Unit = {},
-    viewModel: SearchItemsViewModel = hiltViewModel(),
-    onBack: (() -> Unit)? = null
+    onNavigation: (SearchItemsScreenAction.Navigation) -> Unit,
+    viewModel: SearchItemsViewModel = hiltViewModel()
 ) {
-    val filter = viewModel.filter.collectAsStateWithLifecycle()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
 
     OfficeManagerTheme {
         Scaffold(topBar = {
-            OfficeTopBar(
-                stringResource(
-                    id = if (isSelectionScreen) R.string.title_search_items_to_add
-                    else R.string.title_search_objects
-                ),
-                onNavigationClick = onBack
-            )
+            OfficeTopBar(stringResource(
+                id = if (isSelectionScreen) R.string.title_search_items_to_add
+                else R.string.title_search_objects
+            ), onNavigationClick = if (isSelectionScreen) {
+                { onNavigation(SearchItemsScreenAction.Navigation.GoBack) }
+            } else null)
         }, floatingActionButton = {
             if (!isSelectionScreen) {
                 FloatingActionButton(
-                    onClick = onFabClick,
+                    onClick = { onNavigation(SearchItemsScreenAction.Navigation.AddItem) },
                 ) {
                     Icon(Icons.Filled.Add, stringResource(id = R.string.done_action))
                 }
@@ -62,12 +58,12 @@ fun SearchItemsScreen(
                     Result.Loading -> Loading()
                     is Result.Error -> ErrorLayout(stringResource(id = R.string.error))
                     is Result.Success<SearchItemsUiState> -> Content(
-                        filter.value,
-                        content,
-                        viewModel::onItemRemove,
-                        viewModel::onFilterChanged,
-                        !isSelectionScreen,
-                        onItemClick
+                        !isSelectionScreen, {
+                            when (it) {
+                                is SearchItemsScreenAction.Navigation -> onNavigation(it)
+                                is SearchItemsScreenAction.StateAction -> viewModel.onAction(it)
+                            }
+                        }, content
                     )
                 }
             }
@@ -77,24 +73,29 @@ fun SearchItemsScreen(
 
 @Composable
 private fun Content(
-    filter: String,
-    content: Result.Success<SearchItemsUiState>,
-    onItemRemove: (OfficeItem) -> Unit,
-    onFilterChanged: (String) -> Unit,
-    isOperable: Boolean,
-    onItemClicked: (OfficeItem) -> Unit
+    isOperable: Boolean = false,
+    onAction: (SearchItemsScreenAction) -> Unit,
+    content: Result.Success<SearchItemsUiState>
 ) {
+    val operations = provideOperations(isOperable, onAction)
     Column {
-        TextField(
-            shape = RectangleShape,
+        TextField(shape = RectangleShape,
             modifier = Modifier.fillMaxWidth(),
-            value = filter,
-            onValueChange = { onFilterChanged(it) },
+            value = content.data.filter,
+            onValueChange = { onAction(SearchItemsScreenAction.StateAction.FilterChanged(it)) },
             placeholder = { Text(stringResource(id = R.string.search)) },
-            trailingIcon = { Icon(Icons.Filled.Search, stringResource(id = R.string.search)) }
-        )
-        val operations = if (isOperable) listOf(ItemOperation.Edit, ItemOperation.Delete) else emptyList()
-        OfficeItemsList(content.data.items, operations, onItemClicked, onItemRemove)
+            trailingIcon = { Icon(Icons.Filled.Search, stringResource(id = R.string.search)) })
+        OfficeItemsList(content.data.items, operations, onAction)
     }
 }
+
+@Composable
+private fun provideOperations(
+    isOperable: Boolean,
+    onAction: (SearchItemsScreenAction) -> Unit
+) = if (isOperable) listOf(ItemOperation(OperationType.Delete) {
+    onAction(SearchItemsScreenAction.StateAction.ItemRemove(it))
+}, ItemOperation(OperationType.Edit) {
+    onAction(SearchItemsScreenAction.Navigation.ItemClicked(it))
+}) else emptyList()
 

@@ -5,14 +5,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
+import com.chub.officemanager.ui.ItemOperation
+import com.chub.officemanager.ui.screens.search.SearchItemsScreenAction
 import com.chub.officemanager.util.OfficeItem
 
 @Composable
 fun OfficeItemsList(
-    list: List<OfficeItem>,
-    operations: List<ItemOperation>,
-    onItemClicked: (OfficeItem) -> Unit,
-    onRemoveItem: (OfficeItem) -> Unit = {}
+    list: List<OfficeItem>, operations: List<ItemOperation>, onAction: (SearchItemsScreenAction) -> Unit
 ) {
     val verticalPadding = 12.dp
     val horizontalPadding = 8.dp
@@ -21,15 +20,9 @@ fun OfficeItemsList(
         contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = verticalPadding)
     ) {
         items(list.size, key = { list[it].id }) { index ->
-            OfficeItemLayout(list[index], operations, onItemClicked) {
-                if (operations.isNotEmpty()) {
-                    val item = list[index]
-                    when (it) {
-                        ItemOperation.Edit -> onItemClicked(item)
-                        ItemOperation.Delete -> onRemoveItem(item)
-                    }
-                }
-            }
+            OfficeItemLayout(list[index],
+                operations,
+                onClick = { onAction(SearchItemsScreenAction.Navigation.ItemClicked(it)) })
         }
     }
 }
