@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class OfficeItem(
+class OfficeItem(
     val id: Long = NONE,
     val name: String = "",
     val description: String = "",

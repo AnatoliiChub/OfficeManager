@@ -36,10 +36,10 @@ class SearchItemsViewModel @Inject constructor(private val officeRepo: OfficeIte
         initialValue = Result.Loading
     )
 
-    fun onAction(action: SearchItemsScreenAction.StateAction) {
+    fun onAction(action: SearchItemsScreenAction.StateChange) {
         when (action) {
-            is SearchItemsScreenAction.StateAction.FilterChanged -> onFilterChanged(action.filter)
-            is SearchItemsScreenAction.StateAction.ItemRemove -> onItemRemove(action.item)
+            is SearchItemsScreenAction.StateChange.FilterChanged -> onFilterChanged(action.filter)
+            is SearchItemsScreenAction.StateChange.ItemRemove -> onItemRemove(action.item)
         }
     }
 

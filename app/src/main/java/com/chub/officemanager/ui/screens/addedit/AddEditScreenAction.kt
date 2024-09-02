@@ -6,7 +6,6 @@ sealed class AddEditScreenAction {
 
     sealed class NavigationAction : AddEditScreenAction() {
         data object NavigateToAddItem : NavigationAction()
-        data object NavigateBack : NavigationAction()
     }
 
     sealed class StateAction : AddEditScreenAction() {

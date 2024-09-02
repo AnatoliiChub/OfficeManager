@@ -77,8 +77,7 @@ class AddEditViewModel @Inject constructor(
     fun saveItem(onSaved: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val item = temporaryState.toOfficeItem()
-                officeRepo.storeItem(item)
+                officeRepo.storeItem(temporaryState.toOfficeItem())
                 onSaved()
             } catch (exception: Exception) {
                 when (exception) {
@@ -94,8 +93,7 @@ class AddEditViewModel @Inject constructor(
     }
 
     fun onSelectedRelationToAdd(selectedRelation: OfficeItem?) {
-        if (temporaryState.relations.value.contains(selectedRelation)) {
-            //TODO probably move error to search screen
+        if (temporaryState.relations.value.any { it.id == selectedRelation?.id }) {
             temporaryState.error(ErrorMessage.ITEM_HAS_BEEN_ALREADY_ADDED)
         } else {
             selectedRelation?.let { temporaryState.addRelations(it) }

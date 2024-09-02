@@ -1,5 +1,7 @@
 package com.chub.officemanager
 
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -15,7 +17,6 @@ import com.chub.officemanager.OfficeScreens.SEARCH_OFFICE_ITEMS_TO_ADD
 import com.chub.officemanager.ui.screens.addedit.AddEditScreen
 import com.chub.officemanager.ui.screens.addedit.AddEditScreenAction
 import com.chub.officemanager.ui.screens.search.SearchItemsScreen
-import com.chub.officemanager.ui.screens.search.SearchItemsScreenAction
 import com.chub.officemanager.util.OfficeItem
 import com.chub.officemanager.util.OfficeItem.Companion.NONE
 
@@ -36,51 +37,48 @@ object OfficeDestinations {
     const val ADD_EDIT_OFFICE_ITEM_ROUTE = "{$ADD_EDIT_OFFICE_ITEM}/{$ITEM_ID}"
 }
 
-fun NavGraphBuilder.searchOfficeItemsRoute(onItemClick: (OfficeItem) -> Unit, onFabClick: () -> Unit) {
+fun NavGraphBuilder.searchOfficeItemsRoute(
+    onItemClick: (OfficeItem) -> Unit,
+    onOpen: @Composable () -> Unit
+) {
     composable(SEARCH_OFFICE_ITEMS_ROUTE) {
-        SearchItemsScreen(
-            onNavigation = {
-                when (it) {
-                    is SearchItemsScreenAction.Navigation.ItemClicked -> onItemClick(it.item)
-                    is SearchItemsScreenAction.Navigation.AddItem -> onFabClick()
-                    else -> {}
-                }
-            }
-        )
+        onOpen()
+        SearchItemsScreen(onListItemClick = { onItemClick(it) })
     }
 }
 
 
-fun NavGraphBuilder.searchToAddRoute(onItemClick: (OfficeItem) -> Unit, onBack: () -> Unit) {
+fun NavGraphBuilder.searchToAddRoute(
+    onItemClick: (OfficeItem) -> Unit,
+    onOpen: @Composable () -> Unit
+) {
     composable(SEARCH_TO_ADD_ROUTE) {
-        SearchItemsScreen(
-            true,
-            onNavigation = {
-                when (it) {
-                    is SearchItemsScreenAction.Navigation.ItemClicked -> onItemClick(it.item)
-                    is SearchItemsScreenAction.Navigation.GoBack -> onBack()
-                    else -> {}
-                }
-            }
-        )
+        onOpen()
+        SearchItemsScreen(true, onListItemClick = { onItemClick(it) })
     }
 }
 
-fun NavGraphBuilder.addEditOfficeItemRoute(onAddButtonClick: () -> Unit, onBack: () -> Unit) {
+fun NavGraphBuilder.addEditOfficeItemRoute(
+    onAddNewItem: () -> Unit,
+    onFabStateUpdate: (FabState) -> Unit,
+    snackBarHostState: SnackbarHostState,
+    onOpen: @Composable (Long) -> Unit
+) {
     composable(
         ADD_EDIT_OFFICE_ITEM_ROUTE,
         arguments = listOf(navArgument(ITEM_ID) { type = NavType.LongType })
     ) { entry ->
         val relation = entry.savedStateHandle.get<OfficeItem>(NavArgs.RELATION)
         val id = entry.arguments?.getLong(ITEM_ID) ?: NONE
+        onOpen(id)
         AddEditScreen(
-            id, relation,
-            onNavigation = {
+            relation, onNavigation = {
                 when (it) {
-                    is AddEditScreenAction.NavigationAction.NavigateToAddItem -> onAddButtonClick()
-                    AddEditScreenAction.NavigationAction.NavigateBack -> onBack()
+                    is AddEditScreenAction.NavigationAction -> onAddNewItem()
+                    else -> {}
                 }
-            }
+            }, onFabStateUpdate = { onFabStateUpdate(it) },
+            snackBarHostState = snackBarHostState
         )
     }
 }
